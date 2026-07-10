@@ -9,7 +9,7 @@ const especies = [
 ]
 
 especieRouter.get('/', (req, res) => {
-  res.status(200).json(especies)
+  res.status(200).json({ message: 'Especies encontradas', data: especies })
 })
 
 especieRouter.get('/:id', (req, res) => {
@@ -17,5 +17,11 @@ especieRouter.get('/:id', (req, res) => {
   if (!especie) {
     return res.status(404).json({ message: 'Especie no encontrada' })
   }
-  res.status(200).json(especie)
+  res.status(200).json({ message: 'Especie encontrada', data: especie })
+})
+
+especieRouter.post('/', (req, res) => {
+  const especie = new Especie(req.body.nombre, req.body.descripcion)
+  especies.push(especie)
+  res.status(201).json({ message: 'Especie creada', data: especie })
 })

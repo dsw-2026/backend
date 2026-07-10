@@ -2,4 +2,4 @@
 GET http://localhost:3000/api/especies
 
 ### Obtener una especie por id
-GET http://localhost:3000/api/especies/b30bd281-93ca-47b8-bdc2-257cf9eb76cc
+GET http://localhost:3000/api/especies/2205b8d9-da9e-4166-861c-61281ede3d72
