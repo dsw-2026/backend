@@ -39,3 +39,6 @@ Content-Type: application/json
 {
   "descripcion": "Mamífero doméstico muy fiel"
 }
+
+### Eliminar una especie
+DELETE http://localhost:3000/api/especies/PEGA_UN_ID_REAL_ACA

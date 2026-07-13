@@ -71,3 +71,15 @@ especieRouter.patch('/:id', sanitizeEspecieInput, (req: any, res) => {
 
   res.status(200).json({ message: 'Especie actualizada parcialmente', data: especies[especieIndex] })
 })
+
+especieRouter.delete('/:id', (req, res) => {
+  const especieIndex = especies.findIndex((e) => e.id === req.params.id)
+
+  if (especieIndex === -1) {
+    return res.status(404).json({ message: 'Especie no encontrada' })
+  }
+
+  especies.splice(especieIndex, 1)
+
+  res.status(200).json({ message: 'Especie eliminada exitosamente' })
+})
