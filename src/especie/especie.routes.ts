@@ -25,3 +25,19 @@ especieRouter.post('/', (req, res) => {
   especies.push(especie)
   res.status(201).json({ message: 'Especie creada', data: especie })
 })
+
+especieRouter.put('/:id', (req, res) => {
+  const especieIndex = especies.findIndex((e) => e.id === req.params.id)
+
+  if (especieIndex === -1) {
+    return res.status(404).json({ message: 'Especie no encontrada' })
+  }
+
+  especies[especieIndex] = {
+    ...especies[especieIndex],
+    nombre: req.body.nombre,
+    descripcion: req.body.descripcion,
+  }
+
+  res.status(200).json({ message: 'Especie actualizada', data: especies[especieIndex] })
+})

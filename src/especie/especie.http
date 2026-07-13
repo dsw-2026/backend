@@ -3,3 +3,21 @@ GET http://localhost:3000/api/especies
 
 ### Obtener una especie por id
 GET http://localhost:3000/api/especies/2205b8d9-da9e-4166-861c-61281ede3d72
+
+### Crear una nueva especie
+POST http://localhost:3000/api/especies
+Content-Type: application/json
+
+{
+  "nombre": "Conejo",
+  "descripcion": "Mamífero pequeño de orejas largas"
+}
+
+### Modificar una especie existente
+PUT http://localhost:3000/api/especies/14cfbe06-857c-4ca4-a272-4c09e7cb5f60
+Content-Type: application/json
+
+{
+  "nombre": "Perro",
+  "descripcion": "Mamífero doméstico, leal y compañero del ser humano"
+}
