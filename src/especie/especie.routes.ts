@@ -8,6 +8,14 @@ const especies = [
   new Especie('Gato', 'Felino doméstico independiente'),
 ]
 
+function sanitizeEspecieInput(req: any, res: any, next: any) {
+  req.body.sanitizedInput = {
+    nombre: req.body.nombre,
+    descripcion: req.body.descripcion,
+  }
+  next()
+}
+
 especieRouter.get('/', (req, res) => {
   res.status(200).json({ message: 'Especies encontradas', data: especies })
 })
@@ -20,13 +28,14 @@ especieRouter.get('/:id', (req, res) => {
   res.status(200).json({ message: 'Especie encontrada', data: especie })
 })
 
-especieRouter.post('/', (req, res) => {
-  const especie = new Especie(req.body.nombre, req.body.descripcion)
+especieRouter.post('/', sanitizeEspecieInput, (req: any, res) => {
+  const { nombre, descripcion } = req.body.sanitizedInput
+  const especie = new Especie(nombre, descripcion)
   especies.push(especie)
   res.status(201).json({ message: 'Especie creada', data: especie })
 })
 
-especieRouter.put('/:id', (req, res) => {
+especieRouter.put('/:id', sanitizeEspecieInput, (req: any, res) => {
   const especieIndex = especies.findIndex((e) => e.id === req.params.id)
 
   if (especieIndex === -1) {
@@ -35,8 +44,7 @@ especieRouter.put('/:id', (req, res) => {
 
   especies[especieIndex] = {
     ...especies[especieIndex],
-    nombre: req.body.nombre,
-    descripcion: req.body.descripcion,
+    ...req.body.sanitizedInput,
   }
 
   res.status(200).json({ message: 'Especie actualizada', data: especies[especieIndex] })

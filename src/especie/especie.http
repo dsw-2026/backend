@@ -13,8 +13,18 @@ Content-Type: application/json
   "descripcion": "Mamífero pequeño de orejas largas"
 }
 
+### Crear especie con campo extra (probar sanitización)
+POST http://localhost:3000/api/especies
+Content-Type: application/json
+
+{
+  "nombre": "Hamster",
+  "descripcion": "Roedor pequeño",
+  "esPeligroso": true
+}
+
 ### Modificar una especie existente
-PUT http://localhost:3000/api/especies/14cfbe06-857c-4ca4-a272-4c09e7cb5f60
+PUT http://localhost:3000/api/especies/a22938f0-0684-417f-ae2d-30915cdc7aee
 Content-Type: application/json
 
 {
