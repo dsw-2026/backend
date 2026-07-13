@@ -1,5 +1,6 @@
 import express from 'express'
 import { especieRouter } from './especie/especie.routes.js'
+import { pool } from './shared/db/conn.js'
 
 const app = express()
 
