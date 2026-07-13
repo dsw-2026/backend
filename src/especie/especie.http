@@ -41,4 +41,7 @@ Content-Type: application/json
 }
 
 ### Eliminar una especie
-DELETE http://localhost:3000/api/especies/PEGA_UN_ID_REAL_ACA
+DELETE http://localhost:3000/api/especies/63ff60c6-438b-4b65-87b3-d0b0dfce7b4c
+
+### Probar ruta inexistente (catch-all)
+GET http://localhost:3000/ruta-inventada
