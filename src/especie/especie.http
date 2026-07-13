@@ -24,7 +24,7 @@ Content-Type: application/json
 }
 
 ### Modificar una especie existente
-PUT http://localhost:3000/api/especies/b9831746-fedf-46d6-8b87-337b38d9f18d
+PUT http://localhost:3000/api/especies/720f9751-30c0-422b-93bc-a42d204523e0
 Content-Type: application/json
 
 {
@@ -33,7 +33,7 @@ Content-Type: application/json
 }
 
 ### Modificar parcialmente una especie (solo descripción)
-PATCH http://localhost:3000/api/especies/b9831746-fedf-46d6-8b87-337b38d9f18d
+PATCH http://localhost:3000/api/especies/720f9751-30c0-422b-93bc-a42d204523e0
 Content-Type: application/json
 
 {
@@ -41,7 +41,7 @@ Content-Type: application/json
 }
 
 ### Eliminar una especie
-DELETE http://localhost:3000/api/especies/63ff60c6-438b-4b65-87b3-d0b0dfce7b4c
+DELETE http://localhost:3000/api/especies/720f9751-30c0-422b-93bc-a42d204523e0
 
 ### Probar ruta inexistente (catch-all)
 GET http://localhost:3000/ruta-inventada
