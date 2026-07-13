@@ -13,6 +13,13 @@ function sanitizeEspecieInput(req: any, res: any, next: any) {
     nombre: req.body.nombre,
     descripcion: req.body.descripcion,
   }
+
+  Object.keys(req.body.sanitizedInput).forEach((key) => {
+    if (req.body.sanitizedInput[key] == null) {
+      delete req.body.sanitizedInput[key]
+    }
+  })
+
   next()
 }
 
@@ -48,4 +55,19 @@ especieRouter.put('/:id', sanitizeEspecieInput, (req: any, res) => {
   }
 
   res.status(200).json({ message: 'Especie actualizada', data: especies[especieIndex] })
+})
+
+especieRouter.patch('/:id', sanitizeEspecieInput, (req: any, res) => {
+  const especieIndex = especies.findIndex((e) => e.id === req.params.id)
+
+  if (especieIndex === -1) {
+    return res.status(404).json({ message: 'Especie no encontrada' })
+  }
+
+  especies[especieIndex] = {
+    ...especies[especieIndex],
+    ...req.body.sanitizedInput,
+  }
+
+  res.status(200).json({ message: 'Especie actualizada parcialmente', data: especies[especieIndex] })
 })
