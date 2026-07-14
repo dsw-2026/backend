@@ -2,15 +2,15 @@
 GET http://localhost:3000/api/especies
 
 ### Obtener una especie por id
-GET http://localhost:3000/api/especies/2205b8d9-da9e-4166-861c-61281ede3d72
+GET http://localhost:3000/api/especies/1
 
 ### Crear una nueva especie
 POST http://localhost:3000/api/especies
 Content-Type: application/json
 
 {
-  "nombre": "Conejo",
-  "descripcion": "Mamífero pequeño de orejas largas"
+  "nombre": "Perro",
+  "descripcion": "Mamífero doméstico de cuatro patas"
 }
 
 ### Crear especie con campo extra (probar sanitización)
@@ -18,13 +18,13 @@ POST http://localhost:3000/api/especies
 Content-Type: application/json
 
 {
-  "nombre": "Hamster",
-  "descripcion": "Roedor pequeño",
+  "nombre": "Gato",
+  "descripcion": "Felino pequeño",
   "esPeligroso": true
 }
 
 ### Modificar una especie existente
-PUT http://localhost:3000/api/especies/720f9751-30c0-422b-93bc-a42d204523e0
+PUT http://localhost:3000/api/especies/3
 Content-Type: application/json
 
 {
@@ -33,7 +33,7 @@ Content-Type: application/json
 }
 
 ### Modificar parcialmente una especie (solo descripción)
-PATCH http://localhost:3000/api/especies/720f9751-30c0-422b-93bc-a42d204523e0
+PATCH http://localhost:3000/api/especies/3
 Content-Type: application/json
 
 {
@@ -41,7 +41,7 @@ Content-Type: application/json
 }
 
 ### Eliminar una especie
-DELETE http://localhost:3000/api/especies/720f9751-30c0-422b-93bc-a42d204523e0
+DELETE http://localhost:3000/api/especies/3
 
 ### Probar ruta inexistente (catch-all)
 GET http://localhost:3000/ruta-inventada
