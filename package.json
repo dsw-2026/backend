@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@mikro-orm/core": "7.1.6",
+    "@mikro-orm/decorators": "7.1.6",
     "@mikro-orm/mysql": "7.1.6",
     "@mikro-orm/sql-highlighter": "1.0.1",
     "dotenv": "^17.4.2",
