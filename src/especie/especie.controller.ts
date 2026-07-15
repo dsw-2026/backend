@@ -49,8 +49,19 @@ async function findOne(req: Request, res: Response) {
   }
 }
 
-function update(req: Request, res: Response) {
-  res.status(501).json({ message: 'No implementado (próximo bloque)' })
+async function update(req: Request, res: Response) {
+  try {
+    const id = Number(req.params.id)
+    const especie = await orm.em.findOne(Especie, { id })
+    if (!especie) {
+      return res.status(404).json({ message: 'Especie no encontrada' })
+    }
+    orm.em.assign(especie, req.body.sanitizedInput)
+    await orm.em.flush()
+    res.status(200).json({ message: 'Especie actualizada', data: especie })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
 function remove(req: Request, res: Response) {
