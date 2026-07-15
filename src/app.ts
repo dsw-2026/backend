@@ -1,6 +1,5 @@
 import express from 'express'
 import { especieRouter } from './especie/especie.routes.js'
-import { pool } from './shared/db/conn.js'
 
 const app = express()
 
@@ -8,7 +7,7 @@ app.use(express.json())
 
 app.use('/api/especies', especieRouter)
 
-app.use((_req, res) => {
+app.use((req, res) => {
   res.status(404).json({ message: 'Recurso no encontrado' })
 })
 
