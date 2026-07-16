@@ -9,8 +9,7 @@ POST http://localhost:3000/api/especies
 Content-Type: application/json
 
 {
-  "nombre": "Perro",
-  "descripcion": "Mamífero doméstico de cuatro patas"
+  "nombre": "Perro"
 }
 
 ### Crear especie con campo extra (probar sanitización)
@@ -19,29 +18,27 @@ Content-Type: application/json
 
 {
   "nombre": "Gato",
-  "descripcion": "Felino pequeño",
   "esPeligroso": true
 }
 
 ### Modificar una especie existente
-PUT http://localhost:3000/api/especies/2
+PUT http://localhost:3000/api/especies/1
 Content-Type: application/json
 
 {
-  "nombre": "Perro",
-  "descripcion": "Mamífero doméstico, leal y compañero del ser humano"
+  "nombre": "Gato Doméstico"
 }
 
-### Modificar parcialmente una especie (solo descripción)
-PATCH http://localhost:3000/api/especies/3
+### Modificar parcialmente una especie
+PATCH http://localhost:3000/api/especies/1
 Content-Type: application/json
 
 {
-  "descripcion": "Mamífero doméstico muy fiel"
+  "nombre": "Felino Doméstico"
 }
 
 ### Eliminar una especie
-DELETE http://localhost:3000/api/especies/2
+DELETE http://localhost:3000/api/especies/3
 
 ### Probar ruta inexistente (catch-all)
 GET http://localhost:3000/ruta-inventada

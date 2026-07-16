@@ -1,0 +1,49 @@
+### Obtener todos los usuarios
+GET http://localhost:3000/api/usuarios
+
+### Crear un nuevo usuario
+POST http://localhost:3000/api/usuarios
+Content-Type: application/json
+
+{
+  "nombreUsuario": "mariale",
+  "nombre": "Marianela",
+  "apellido": "Altamirano",
+  "contrasena": "claveSegura123",
+  "email": "mariale@example.com",
+  "telefono": "3814000000",
+  "descripcion": "Amante de los animales",
+  "direccion": "Calle Falsa 123"
+}
+
+### Obtener un usuario por id
+GET http://localhost:3000/api/usuarios/1
+
+### Modificar un usuario existente
+PUT http://localhost:3000/api/usuarios/1
+Content-Type: application/json
+
+{
+  "nombreUsuario": "mariale",
+  "nombre": "Marianela",
+  "apellido": "Altamirano",
+  "contrasena": "claveSegura123",
+  "email": "mariale@example.com",
+  "telefono": "3814000001",
+  "descripcion": "Amante de los animales y voluntaria",
+  "direccion": "Calle Falsa 456"
+}
+
+### Modificar parcialmente un usuario (solo teléfono)
+PATCH http://localhost:3000/api/usuarios/1
+Content-Type: application/json
+
+{
+  "telefono": "3814009999"
+}
+
+### Eliminar un usuario
+DELETE http://localhost:3000/api/usuarios/1
+
+### Probar 404 (id inexistente)
+GET http://localhost:3000/api/usuarios/999

@@ -5,7 +5,6 @@ import { Especie } from './especie.entity.js'
 function sanitizeEspecieInput(req: Request, res: Response, next: NextFunction) {
   req.body.sanitizedInput = {
     nombre: req.body.nombre,
-    descripcion: req.body.descripcion,
   }
 
   Object.keys(req.body.sanitizedInput).forEach((key) => {

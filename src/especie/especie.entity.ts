@@ -5,7 +5,4 @@ import { BaseEntity } from '../shared/db/base.entity.js'
 export class Especie extends BaseEntity {
   @Property({ nullable: false, unique: true })
   nombre!: string
-
-  @Property({ nullable: false })
-  descripcion!: string
 }
