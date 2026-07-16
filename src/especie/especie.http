@@ -41,7 +41,7 @@ Content-Type: application/json
 }
 
 ### Eliminar una especie
-DELETE http://localhost:3000/api/especies/3
+DELETE http://localhost:3000/api/especies/2
 
 ### Probar ruta inexistente (catch-all)
 GET http://localhost:3000/ruta-inventada

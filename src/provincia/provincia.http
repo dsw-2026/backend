@@ -1,0 +1,46 @@
+### Obtener todas las provincias
+GET http://localhost:3000/api/provincias
+
+### Obtener una provincia por id
+GET http://localhost:3000/api/provincias/1
+
+### Crear una nueva provincia
+POST http://localhost:3000/api/provincias
+Content-Type: application/json
+
+{
+  "nombre": "Córdoba",
+  "codigo": "COR"
+}
+
+### Crear otra provincia
+POST http://localhost:3000/api/provincias
+Content-Type: application/json
+
+{
+  "nombre": "Santa Fe",
+  "codigo": "SF"
+}
+
+### Modificar una provincia existente
+PUT http://localhost:3000/api/provincias/1
+Content-Type: application/json
+
+{
+  "nombre": "Córdoba",
+  "codigo": "CBA"
+}
+
+### Modificar parcialmente una provincia (solo código)
+PATCH http://localhost:3000/api/provincias/3
+Content-Type: application/json
+
+{
+  "codigo": "SFE"
+}
+
+### Eliminar una provincia
+DELETE http://localhost:3000/api/provincias/3
+
+### Probar 404 (id inexistente)
+GET http://localhost:3000/api/provincias/999
