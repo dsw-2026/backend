@@ -24,7 +24,7 @@ Content-Type: application/json
 }
 
 ### Modificar una especie existente
-PUT http://localhost:3000/api/especies/1
+PUT http://localhost:3000/api/especies/2
 Content-Type: application/json
 
 {

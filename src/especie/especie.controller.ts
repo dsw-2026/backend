@@ -64,8 +64,19 @@ async function update(req: Request, res: Response) {
   }
 }
 
-function remove(req: Request, res: Response) {
-  res.status(501).json({ message: 'No implementado (próximo bloque)' })
+async function remove(req: Request, res: Response) {
+  try {
+    const id = Number(req.params.id)
+    const especie = await orm.em.findOne(Especie, { id })
+    if (!especie) {
+      return res.status(404).json({ message: 'Especie no encontrada' })
+    }
+    orm.em.remove(especie)
+    await orm.em.flush()
+    res.status(200).json({ message: 'Especie eliminada exitosamente' })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
 export { sanitizeEspecieInput, findAll, findOne, create, update, remove }
