@@ -1,0 +1,35 @@
+### Obtener todos los publicadores
+GET http://localhost:3000/api/publicadores
+
+### Crear un nuevo publicador
+POST http://localhost:3000/api/publicadores
+Content-Type: application/json
+
+{
+  "nombreUsuario": "refugioamigos",
+  "nombre": "Refugio",
+  "apellido": "Amigos Peludos",
+  "contrasena": "claveSegura456",
+  "email": "refugio@example.com",
+  "tipo": "REFUGIO",
+  "sitioWeb": "https://refugioamigos.org",
+  "redesSociales": {
+    "instagram": "https://instagram.com/refugioamigos",
+    "facebook": "https://facebook.com/refugioamigos"
+  },
+  "horariosAtencion": "Lunes a viernes de 9 a 18"
+}
+
+### Obtener un publicador por id
+GET http://localhost:3000/api/publicadores/2
+
+### Modificar parcialmente un publicador
+PATCH http://localhost:3000/api/publicadores/2
+Content-Type: application/json
+
+{
+  "horariosAtencion": "Lunes a sábado de 9 a 20"
+}
+
+### Eliminar un publicador
+DELETE http://localhost:3000/api/publicadores/2
