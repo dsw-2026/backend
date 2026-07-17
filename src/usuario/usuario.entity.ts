@@ -1,7 +1,7 @@
 import { Entity, Property } from '@mikro-orm/decorators/legacy'
 import { BaseEntity } from '../shared/db/base.entity.js'
 
-@Entity()
+@Entity({ discriminatorColumn: 'tipoUsuario', abstract: true })
 export class Usuario extends BaseEntity {
   @Property({ nullable: false, unique: true })
   nombreUsuario!: string
@@ -32,4 +32,10 @@ export class Usuario extends BaseEntity {
 
   @Property({ nullable: true })
   fotoPerfil?: string
+
+  @Property({ nullable: false, onCreate: () => new Date() })
+  fechaCreacion!: Date
+
+  @Property({ nullable: true })
+  fechaBaja?: Date
 }
