@@ -1,0 +1,12 @@
+### Obtener todas las solicitudes
+GET http://localhost:3000/api/solicitudes
+
+### Crear una solicitud
+POST http://localhost:3000/api/solicitudes
+Content-Type: application/json
+
+{
+  "adoptanteId": 1,
+  "mascotaId": 1
+}
+
