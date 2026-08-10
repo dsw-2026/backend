@@ -1,0 +1,40 @@
+### Obtener todas las mascotas
+GET http://localhost:3000/api/mascotas
+
+### Crear una nueva mascota (con su característica)
+POST http://localhost:3000/api/mascotas
+Content-Type: application/json
+
+{
+  "nombre": "Firulais",
+  "sexo": "MACHO",
+  "edad": 3,
+  "unidadEdad": "ANIOS",
+  "estado": "DISPONIBLE",
+  "foto": "https://ejemplo.com/firulais.jpg",
+  "especie": 1,
+  "publicador": 3,
+  "energia": "ALTA",
+  "caracter": "Juguetón y muy cariñoso",
+  "tamanio": "MEDIANO",
+  "vacunacion": true,
+  "castracion": false,
+  "toleraNinos": "SI",
+  "toleraAnimales": "DESCONOCIDO",
+  "toleraEncierro": "NO",
+  "observacionesAdicionales": "Le encanta jugar a la pelota"
+}
+
+### Obtener una mascota por id
+GET http://localhost:3000/api/mascotas/1
+
+### Modificar parcialmente una mascota
+PATCH http://localhost:3000/api/mascotas/1
+Content-Type: application/json
+
+{
+  "estado": "EN_PROCESO"
+}
+
+### Eliminar una mascota
+DELETE http://localhost:3000/api/mascotas/1

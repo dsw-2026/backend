@@ -6,6 +6,7 @@ import { especieRouter } from './especie/especie.routes.js'
 import { provinciaRouter } from './provincia/provincia.routes.js'
 import { usuarioRouter } from './usuario/usuario.routes.js'
 import { publicadorRouter } from './publicador/publicador.routes.js'
+import { mascotaRouter } from './mascota/mascota.routes.js'
 
 const app = express()
 
@@ -22,6 +23,8 @@ app.use('/api/provincias', provinciaRouter)
 app.use('/api/usuarios', usuarioRouter)
 
 app.use('/api/publicadores', publicadorRouter)
+
+app.use('/api/mascotas', mascotaRouter)
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Recurso no encontrado' })
