@@ -1,0 +1,26 @@
+### Obtener todas las localidades
+GET http://localhost:3000/api/localidades
+
+### Crear una nueva localidad
+POST http://localhost:3000/api/localidades
+Content-Type: application/json
+
+{
+  "nombre": "Córdoba Capital",
+  "codigoPostal": "5000",
+  "provincia": 1
+}
+
+### Obtener una localidad por id
+GET http://localhost:3000/api/localidades/1
+
+### Modificar parcialmente una localidad
+PATCH http://localhost:3000/api/localidades/1
+Content-Type: application/json
+
+{
+  "codigoPostal": "5001"
+}
+
+### Eliminar una localidad
+DELETE http://localhost:3000/api/localidades/1

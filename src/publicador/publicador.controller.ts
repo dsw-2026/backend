@@ -18,6 +18,7 @@ function sanitizePublicadorInput(req: Request, res: Response, next: NextFunction
     sitioWeb: req.body.sitioWeb,
     redesSociales: req.body.redesSociales,
     horariosAtencion: req.body.horariosAtencion,
+    localidad: req.body.localidad,
   }
 
   Object.keys(req.body.sanitizedInput).forEach((key) => {
@@ -31,7 +32,7 @@ function sanitizePublicadorInput(req: Request, res: Response, next: NextFunction
 
 async function findAll(req: Request, res: Response) {
   try {
-    const publicadores = await orm.em.find(Publicador, {})
+    const publicadores = await orm.em.find(Publicador, {}, { populate: ['localidad'] })
     res.status(200).json({ message: 'Publicadores encontrados', data: publicadores })
   } catch (error: any) {
     console.error(error)
@@ -42,7 +43,7 @@ async function findAll(req: Request, res: Response) {
 async function findOne(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
-    const publicador = await orm.em.findOne(Publicador, { id })
+    const publicador = await orm.em.findOne(Publicador, { id }, { populate: ['localidad'] })
     if (!publicador) {
       return res.status(404).json({ message: 'Publicador no encontrado' })
     }

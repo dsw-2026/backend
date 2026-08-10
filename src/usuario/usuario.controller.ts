@@ -14,6 +14,7 @@ function sanitizeUsuarioInput(req: Request, res: Response, next: NextFunction) {
     descripcion: req.body.descripcion,
     direccion: req.body.direccion,
     fotoPerfil: req.body.fotoPerfil,
+    localidad: req.body.localidad,
   }
 
   Object.keys(req.body.sanitizedInput).forEach((key) => {
@@ -27,7 +28,7 @@ function sanitizeUsuarioInput(req: Request, res: Response, next: NextFunction) {
 
 async function findAll(req: Request, res: Response) {
   try {
-    const usuarios = await orm.em.find(Usuario, {})
+    const usuarios = await orm.em.find(Usuario, {}, { populate: ['localidad'] })
     res.status(200).json({ message: 'Usuarios encontrados', data: usuarios })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
@@ -37,7 +38,7 @@ async function findAll(req: Request, res: Response) {
 async function findOne(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
-    const usuario = await orm.em.findOne(Usuario, { id })
+    const usuario = await orm.em.findOne(Usuario, { id }, { populate: ['localidad'] })
     if (!usuario) {
       return res.status(404).json({ message: 'Usuario no encontrado' })
     }
