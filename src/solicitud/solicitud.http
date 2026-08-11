@@ -11,8 +11,31 @@ Content-Type: application/json
   "adoptante": 4
 }
 
+### Crear una solicitud sobre una mascota disponible
+POST http://localhost:3000/api/solicitudes
+Content-Type: application/json
+
+{
+  "mensaje": "Quiero adoptar a este Firulais también",
+  "mascota": 2,
+  "adoptante": 4
+}
+
 ### Obtener una solicitud por id
 GET http://localhost:3000/api/solicitudes/1
 
 ### Eliminar una solicitud
 DELETE http://localhost:3000/api/solicitudes/1
+
+### Verificar que la mascota cambió de estado
+GET http://localhost:3000/api/mascotas/2
+
+### Intentar solicitar una mascota que ya no está disponible
+POST http://localhost:3000/api/solicitudes
+Content-Type: application/json
+
+{
+  "mensaje": "Otro intento sobre la misma mascota",
+  "mascota": 2,
+  "adoptante": 4
+}

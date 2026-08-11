@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { orm } from '../shared/db/orm.js'
 import { Solicitud, EstadoSolicitud } from './solicitud.entity.js'
-import { Mascota } from '../mascota/mascota.entity.js'
+import { Mascota, EstadoMascota} from '../mascota/mascota.entity.js'
 import { Adoptante } from '../adoptante/adoptante.entity.js'
 
 const POPULATE = ['mascota', 'mascota.especie', 'mascota.caracteristica', 'adoptante'] as const
@@ -75,6 +75,10 @@ async function create(req: Request, res: Response) {
       return res.status(404).json({ message: 'Mascota no encontrada' })
     }
 
+    if (mascota.estado !== EstadoMascota.DISPONIBLE) {
+      return res.status(409).json({ message: 'La mascota no está disponible para adopción' })
+    }
+
     const adoptante = await orm.em.findOne(Adoptante, { id: adoptanteId })
     if (!adoptante) {
       return res.status(404).json({ message: 'Adoptante no encontrado' })
@@ -90,6 +94,8 @@ async function create(req: Request, res: Response) {
       nivelCompatibilidad,
       fechaSolicitud: new Date(),
     })
+
+    mascota.estado = EstadoMascota.EN_PROCESO
 
     await orm.em.flush()
     res.status(201).json({ message: 'Solicitud creada', data: solicitud })
