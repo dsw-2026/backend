@@ -43,7 +43,11 @@ function calcularNivelCompatibilidad(mascota: Mascota, adoptante: Adoptante): nu
 
 async function findAll(req: Request, res: Response) {
   try {
-    const solicitudes = await orm.em.find(Solicitud, {}, { populate: POPULATE })
+    const filtro: any = {}
+    if (req.query.estado) {
+      filtro.estado = req.query.estado
+    }
+    const solicitudes = await orm.em.find(Solicitud, filtro, { populate: POPULATE })
     res.status(200).json({ message: 'Solicitudes encontradas', data: solicitudes })
   } catch (error: any) {
     console.error(error)

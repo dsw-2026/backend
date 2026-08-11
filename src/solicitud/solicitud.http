@@ -39,3 +39,6 @@ Content-Type: application/json
   "mascota": 2,
   "adoptante": 4
 }
+
+### Obtener solicitudes pendientes
+GET http://localhost:3000/api/solicitudes?estado=PENDIENTE

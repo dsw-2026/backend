@@ -38,3 +38,6 @@ Content-Type: application/json
 
 ### Eliminar una mascota
 DELETE http://localhost:3000/api/mascotas/1
+
+### Obtener todas las mascotas disponibles
+GET http://localhost:3000/api/mascotas?estado=DISPONIBLE
