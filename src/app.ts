@@ -8,6 +8,8 @@ import { usuarioRouter } from './usuario/usuario.routes.js'
 import { publicadorRouter } from './publicador/publicador.routes.js'
 import { mascotaRouter } from './mascota/mascota.routes.js'
 import { localidadRouter } from './localidad/localidad.routes.js'
+import { adoptanteRouter } from './adoptante/adoptante.routes.js'
+import { solicitudRouter } from './solicitud/solicitud.routes.js'
 
 const app = express()
 
@@ -29,6 +31,10 @@ app.use('/api/mascotas', mascotaRouter)
 
 app.use('/api/localidades', localidadRouter)
 
+app.use('/api/adoptantes', adoptanteRouter)
+
+app.use('/api/solicitudes', solicitudRouter)
+
 app.use((req, res) => {
   res.status(404).json({ message: 'Recurso no encontrado' })
 })
@@ -38,3 +44,4 @@ await syncSchema()
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000')
 })
+

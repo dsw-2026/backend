@@ -1,0 +1,33 @@
+### Obtener todos los adoptantes
+GET http://localhost:3000/api/adoptantes
+
+### Crear un nuevo adoptante
+POST http://localhost:3000/api/adoptantes
+Content-Type: application/json
+
+{
+  "nombreUsuario": "juanadopta",
+  "nombre": "Juan",
+  "apellido": "Pérez",
+  "contrasena": "claveSegura789",
+  "email": "juan@example.com",
+  "occupation": "Diseñador gráfico",
+  "tipoVivienda": "CASA",
+  "tienePatio": true,
+  "tieneOtrosAnimales": true,
+  "otrosAnimalesDetalle": "Un gato de 2 años"
+}
+
+### Obtener un adoptante por id
+GET http://localhost:3000/api/adoptantes/1
+
+### Modificar parcialmente un adoptante
+PATCH http://localhost:3000/api/adoptantes/1
+Content-Type: application/json
+
+{
+  "tienePatio": false
+}
+
+### Eliminar un adoptante
+DELETE http://localhost:3000/api/adoptantes/1
