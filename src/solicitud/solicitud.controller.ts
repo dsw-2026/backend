@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { orm } from '../shared/db/orm.js'
 import { Solicitud, EstadoSolicitud } from './solicitud.entity.js'
-import { Mascota, EstadoMascota} from '../mascota/mascota.entity.js'
+import { Mascota, EstadoMascota } from '../mascota/mascota.entity.js'
 import { Adoptante } from '../adoptante/adoptante.entity.js'
 
 const POPULATE = ['mascota', 'mascota.especie', 'mascota.caracteristica', 'adoptante'] as const
@@ -98,8 +98,6 @@ async function create(req: Request, res: Response) {
       nivelCompatibilidad,
       fechaSolicitud: new Date(),
     })
-
-    mascota.estado = EstadoMascota.EN_PROCESO
 
     await orm.em.flush()
     res.status(201).json({ message: 'Solicitud creada', data: solicitud })
