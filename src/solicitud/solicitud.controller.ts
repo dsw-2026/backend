@@ -3,7 +3,11 @@ import { orm } from '../shared/db/orm.js'
 import { Solicitud, EstadoSolicitud } from './solicitud.entity.js'
 import { Mascota, EstadoMascota } from '../mascota/mascota.entity.js'
 import { Adoptante } from '../adoptante/adoptante.entity.js'
+import { removeNullish } from '../shared/utils/removeNullish.js'
 
+// Se incluye mascota.especie y mascota.caracteristica (populate anidado)
+// para que la respuesta traiga la información completa de la mascota,
+// no solo su id, útil para que el Publicador evalúe la solicitud.
 const POPULATE = ['mascota', 'mascota.especie', 'mascota.caracteristica', 'adoptante'] as const
 
 function sanitizeSolicitudInput(req: Request, res: Response, next: NextFunction) {
@@ -12,16 +16,15 @@ function sanitizeSolicitudInput(req: Request, res: Response, next: NextFunction)
     mascota: req.body.mascota,
     adoptante: req.body.adoptante,
   }
-
-  Object.keys(req.body.sanitizedInput).forEach((key) => {
-    if (req.body.sanitizedInput[key] == null) {
-      delete req.body.sanitizedInput[key]
-    }
-  })
-
+  removeNullish(req.body.sanitizedInput)
   next()
 }
 
+// Lógica de negocio pura (sin tocar la base): compara datos de la
+// Caracteristica de la Mascota con datos del Adoptante, sumando/restando
+// puntos según reglas simples. Se calcula UNA VEZ al crear la Solicitud
+// y se persiste (no se recalcula dinámicamente), para que el número
+// refleje exactamente la situación en el momento de la decisión.
 function calcularNivelCompatibilidad(mascota: Mascota, adoptante: Adoptante): number {
   let nivel = 0
   const caracteristica = mascota.caracteristica
@@ -69,6 +72,11 @@ async function findOne(req: Request, res: Response) {
   }
 }
 
+// EPIC A: "Solicitar adopción". No es un CRUD simple: valida una regla de
+// negocio (mascota disponible), calcula la compatibilidad, y permite
+// MÚLTIPLES solicitudes por mascota mientras siga disponible (no se
+// bloquea con la primera solicitud), para que el nivel de compatibilidad
+// tenga sentido real al comparar candidatos en el Epic B.
 async function create(req: Request, res: Response) {
   try {
     const mascotaId = Number(req.body.sanitizedInput.mascota)
@@ -79,6 +87,8 @@ async function create(req: Request, res: Response) {
       return res.status(404).json({ message: 'Mascota no encontrada' })
     }
 
+    // Valida la regla de negocio: solo se pueden procesar adopciones de mascotas disponibles.
+    // 409 (Conflict): la petición es válida, pero el estado actual de la mascota lo impide.
     if (mascota.estado !== EstadoMascota.DISPONIBLE) {
       return res.status(409).json({ message: 'La mascota no está disponible para adopción' })
     }
@@ -107,6 +117,9 @@ async function create(req: Request, res: Response) {
   }
 }
 
+// No hay update genérico: el cambio de estado (aprobar/rechazar) es
+// responsabilidad del Epic B, que tiene efectos sobre la Mascota
+// relacionada, no una simple modificación de datos.
 async function remove(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)

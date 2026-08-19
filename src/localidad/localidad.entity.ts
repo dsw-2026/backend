@@ -8,9 +8,12 @@ export class Localidad extends BaseEntity {
   @Property({ nullable: false })
   nombre!: string
 
+  // unique: true → no puede haber dos localidades con el mismo código postal.
   @Property({ nullable: false, unique: true })
   codigoPostal!: string
 
+  // Sin cascada: no se puede borrar una Provincia mientras tenga
+  // localidades asociadas.
   @ManyToOne(() => Provincia, { nullable: false })
   provincia!: Rel<Provincia>
 }

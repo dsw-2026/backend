@@ -1,23 +1,20 @@
 import { Request, Response, NextFunction } from 'express'
 import { orm } from '../shared/db/orm.js'
 import { Localidad } from './localidad.entity.js'
+import { removeNullish } from '../shared/utils/removeNullish.js'
 
+// Del body recibido, solo conservamos los campos permitidos para Localidad.
 function sanitizeLocalidadInput(req: Request, res: Response, next: NextFunction) {
   req.body.sanitizedInput = {
     nombre: req.body.nombre,
     codigoPostal: req.body.codigoPostal,
     provincia: req.body.provincia,
   }
-
-  Object.keys(req.body.sanitizedInput).forEach((key) => {
-    if (req.body.sanitizedInput[key] == null) {
-      delete req.body.sanitizedInput[key]
-    }
-  })
-
+  removeNullish(req.body.sanitizedInput)
   next()
 }
 
+// Devuelve todas las localidades con su provincia poblada.
 async function findAll(req: Request, res: Response) {
   try {
     const localidades = await orm.em.find(Localidad, {}, { populate: ['provincia'] })
@@ -28,6 +25,7 @@ async function findAll(req: Request, res: Response) {
   }
 }
 
+// Busca una localidad por ID. Devuelve 404 si no existe.
 async function findOne(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -42,6 +40,8 @@ async function findOne(req: Request, res: Response) {
   }
 }
 
+// La provincia se recibe como referencia y luego se carga con populate
+// para incluir sus datos completos en la respuesta.
 async function create(req: Request, res: Response) {
   try {
     const localidad = orm.em.create(Localidad, req.body.sanitizedInput)
@@ -54,6 +54,7 @@ async function create(req: Request, res: Response) {
   }
 }
 
+// Se verifica que la localidad exista antes de modificarla.
 async function update(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -63,6 +64,7 @@ async function update(req: Request, res: Response) {
     }
     orm.em.assign(localidad, req.body.sanitizedInput)
     await orm.em.flush()
+    // Carga la provincia para incluir sus datos completos en la respuesta.
     await orm.em.populate(localidad, ['provincia'])
     res.status(200).json({ message: 'Localidad actualizada', data: localidad })
   } catch (error: any) {
@@ -71,6 +73,7 @@ async function update(req: Request, res: Response) {
   }
 }
 
+// Se verifica que la localidad exista antes de eliminarla.
 async function remove(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)

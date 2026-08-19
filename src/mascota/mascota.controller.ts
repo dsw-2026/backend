@@ -2,7 +2,10 @@ import { Request, Response, NextFunction } from 'express'
 import { orm } from '../shared/db/orm.js'
 import { Mascota } from './mascota.entity.js'
 import { Caracteristica } from '../caracteristica/caracteristica.entity.js'
+import { removeNullish } from '../shared/utils/removeNullish.js'
 
+// Separa el body en dos objetos: campos de Mascota y de Caracteristica.
+// Se crean juntas en la misma petición (ver create más abajo).
 function sanitizeMascotaInput(req: Request, res: Response, next: NextFunction) {
   req.body.sanitizedInput = {
     nombre: req.body.nombre,
@@ -27,23 +30,16 @@ function sanitizeMascotaInput(req: Request, res: Response, next: NextFunction) {
     observacionesAdicionales: req.body.observacionesAdicionales,
   }
 
-  Object.keys(req.body.sanitizedInput).forEach((key) => {
-    if (req.body.sanitizedInput[key] == null) {
-      delete req.body.sanitizedInput[key]
-    }
-  })
-
-  Object.keys(req.body.sanitizedCaracteristica).forEach((key) => {
-    if (req.body.sanitizedCaracteristica[key] == null) {
-      delete req.body.sanitizedCaracteristica[key]
-    }
-  })
+  removeNullish(req.body.sanitizedInput)
+  removeNullish(req.body.sanitizedCaracteristica)
 
   next()
 }
 
+// Relaciones que se cargan junto con la Mascota.
 const POPULATE = ['especie', 'publicador', 'caracteristica'] as const
 
+// Permite filtrar las mascotas por estado mediante el query param ?estado=. Sin filtro, trae todas.
 async function findAll(req: Request, res: Response) {
   try {
     const filtro: any = {}
@@ -72,6 +68,8 @@ async function findOne(req: Request, res: Response) {
   }
 }
 
+// Crea y persiste la Mascota y su Caracteristica en la misma operación.
+// (no existe una Caracteristica sin su mascota).
 async function create(req: Request, res: Response) {
   try {
     const caracteristica = orm.em.create(Caracteristica, req.body.sanitizedCaracteristica)
@@ -88,6 +86,7 @@ async function create(req: Request, res: Response) {
   }
 }
 
+// Actualiza tanto los datos de Mascota como los de su Caracteristica.
 async function update(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -105,6 +104,8 @@ async function update(req: Request, res: Response) {
   }
 }
 
+// La Caracteristica se elimina automáticamente junto con la Mascota
+// mediante la cascada configurada en la relación.
 async function remove(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)

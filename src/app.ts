@@ -6,42 +6,44 @@ import { especieRouter } from './especie/especie.routes.js'
 import { provinciaRouter } from './provincia/provincia.routes.js'
 import { usuarioRouter } from './usuario/usuario.routes.js'
 import { publicadorRouter } from './publicador/publicador.routes.js'
+import { adoptanteRouter } from './adoptante/adoptante.routes.js'
 import { mascotaRouter } from './mascota/mascota.routes.js'
 import { localidadRouter } from './localidad/localidad.routes.js'
-import { adoptanteRouter } from './adoptante/adoptante.routes.js'
 import { solicitudRouter } from './solicitud/solicitud.routes.js'
 
-const app = express()
+export const app = express()
 
 app.use(express.json())
 
+// Crea un EntityManager aislado por cada petición HTTP (Unit of Work
+// independiente), evitando que peticiones concurrentes se interfieran
+// entre sí. Debe ir después de los middlewares base y antes de las rutas.
 app.use((req, res, next) => {
   RequestContext.create(orm.em, next)
 })
 
+// Cada router se monta bajo un prefijo /api/<recurso>, siguiendo la
+// convención REST. El orden importa: deben ir antes del catch-all final.
 app.use('/api/especies', especieRouter)
-
 app.use('/api/provincias', provinciaRouter)
-
 app.use('/api/usuarios', usuarioRouter)
-
 app.use('/api/publicadores', publicadorRouter)
-
-app.use('/api/mascotas', mascotaRouter)
-
-app.use('/api/localidades', localidadRouter)
-
 app.use('/api/adoptantes', adoptanteRouter)
-
+app.use('/api/mascotas', mascotaRouter)
+app.use('/api/localidades', localidadRouter)
 app.use('/api/solicitudes', solicitudRouter)
 
+// Catch-all: atrapa cualquier petición que no coincidió con ninguna ruta
+// anterior, devolviendo un 404 en JSON en vez del HTML por defecto de
+// Express. Debe ser el último app.use().
 app.use((req, res) => {
   res.status(404).json({ message: 'Recurso no encontrado' })
 })
 
+// Genera/actualiza el esquema de la base según las entidades (solo
+// apropiado en desarrollo, ver advertencia en orm.ts).
 await syncSchema()
 
 app.listen(3000, () => {
   console.log('Server running on http://localhost:3000')
 })
-

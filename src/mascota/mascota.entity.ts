@@ -5,40 +5,39 @@ import { Especie } from '../especie/especie.entity.js'
 import { Publicador } from '../publicador/publicador.entity.js'
 import { Caracteristica } from '../caracteristica/caracteristica.entity.js'
 
-export enum Sexo {
-  MACHO = 'MACHO',
-  HEMBRA = 'HEMBRA',
-}
+export const Sexo = { MACHO: 'MACHO', HEMBRA: 'HEMBRA' } as const
+export type Sexo = (typeof Sexo)[keyof typeof Sexo]
 
-export enum UnidadEdad {
-  MESES = 'MESES',
-  ANIOS = 'ANIOS',
-}
+export const UnidadEdad = { MESES: 'MESES', ANIOS: 'ANIOS' } as const
+export type UnidadEdad = (typeof UnidadEdad)[keyof typeof UnidadEdad]
 
-export enum EstadoMascota {
-  DISPONIBLE = 'DISPONIBLE',
-  EN_PROCESO = 'EN_PROCESO',
-  ADOPTADA = 'ADOPTADA',
-  NO_DISPONIBLE = 'NO_DISPONIBLE',
-}
+export const EstadoMascota = {
+  DISPONIBLE: 'DISPONIBLE',
+  EN_PROCESO: 'EN_PROCESO',
+  ADOPTADA: 'ADOPTADA',
+  NO_DISPONIBLE: 'NO_DISPONIBLE',
+} as const
+export type EstadoMascota = (typeof EstadoMascota)[keyof typeof EstadoMascota]
 
 @Entity()
 export class Mascota extends BaseEntity {
   @Property({ nullable: false })
   nombre!: string
 
-  @Enum(() => Sexo)
+  @Enum(() => Object.values(Sexo))
   sexo!: Sexo
 
+  // Se separa la edad de su unidad para distinguir, por ejemplo, 2 meses de 2 años.
   @Property({ nullable: false })
   edad!: number
 
-  @Enum(() => UnidadEdad)
+  @Enum(() => Object.values(UnidadEdad))
   unidadEdad!: UnidadEdad
 
-  @Enum(() => EstadoMascota)
+  @Enum(() => Object.values(EstadoMascota))
   estado!: EstadoMascota
 
+  // Se asigna automáticamente al crear la Mascota.
   @Property({ nullable: false, onCreate: () => new Date() })
   fechaIngreso!: Date
 
@@ -51,6 +50,7 @@ export class Mascota extends BaseEntity {
   @ManyToOne(() => Publicador, { nullable: false })
   publicador!: Rel<Publicador>
 
+  // La Caracteristica se elimina junto con la Mascota por la cascada configurada.
   @OneToOne(() => Caracteristica, { nullable: false, cascade: [Cascade.ALL] })
   caracteristica!: Rel<Caracteristica>
 }

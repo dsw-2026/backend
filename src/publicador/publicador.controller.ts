@@ -2,7 +2,10 @@ import { Request, Response, NextFunction } from 'express'
 import bcrypt from 'bcrypt'
 import { orm } from '../shared/db/orm.js'
 import { Publicador } from './publicador.entity.js'
+import { removeNullish } from '../shared/utils/removeNullish.js'
 
+// Del body recibido, solo conservamos los campos permitidos para Publicador,
+// incluyendo tanto los heredados de Usuario como los propios de esta subclase.
 function sanitizePublicadorInput(req: Request, res: Response, next: NextFunction) {
   req.body.sanitizedInput = {
     nombreUsuario: req.body.nombreUsuario,
@@ -20,16 +23,13 @@ function sanitizePublicadorInput(req: Request, res: Response, next: NextFunction
     horariosAtencion: req.body.horariosAtencion,
     localidad: req.body.localidad,
   }
-
-  Object.keys(req.body.sanitizedInput).forEach((key) => {
-    if (req.body.sanitizedInput[key] == null) {
-      delete req.body.sanitizedInput[key]
-    }
-  })
-
+  removeNullish(req.body.sanitizedInput)
   next()
 }
 
+// Devuelve solo los registros de tipo Publicador.
+// MikroORM los identifica mediante la columna "tipoUsuario",
+// definida en Usuario como columna discriminadora.
 async function findAll(req: Request, res: Response) {
   try {
     const publicadores = await orm.em.find(Publicador, {}, { populate: ['localidad'] })
@@ -40,6 +40,7 @@ async function findAll(req: Request, res: Response) {
   }
 }
 
+// Busca un Publicador por ID. Devuelve 404 si no existe.
 async function findOne(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -54,6 +55,7 @@ async function findOne(req: Request, res: Response) {
   }
 }
 
+/// La contraseña se guarda como hash y la verificación comienza en false.
 async function create(req: Request, res: Response) {
   try {
     const contrasenaHasheada = await bcrypt.hash(req.body.sanitizedInput.contrasena, 10)
@@ -77,6 +79,7 @@ async function update(req: Request, res: Response) {
     if (!publicador) {
       return res.status(404).json({ message: 'Publicador no encontrado' })
     }
+    // Solo se re-hashea si viene una contraseña nueva; si no, se conserva la actual.
     if (req.body.sanitizedInput.contrasena) {
       req.body.sanitizedInput.contrasena = await bcrypt.hash(req.body.sanitizedInput.contrasena, 10)
     }
@@ -89,6 +92,7 @@ async function update(req: Request, res: Response) {
   }
 }
 
+// Se verifica que el Publicador exista antes de eliminarlo.
 async function remove(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)

@@ -2,7 +2,10 @@ import { Request, Response, NextFunction } from 'express'
 import bcrypt from 'bcrypt'
 import { orm } from '../shared/db/orm.js'
 import { Adoptante } from './adoptante.entity.js'
+import { removeNullish } from '../shared/utils/removeNullish.js'
 
+// Del body recibido, solo conservamos los campos permitidos para Adoptante,
+// tanto los heredados de Usuario como los propios de esta subclase.
 function sanitizeAdoptanteInput(req: Request, res: Response, next: NextFunction) {
   req.body.sanitizedInput = {
     nombreUsuario: req.body.nombreUsuario,
@@ -21,16 +24,12 @@ function sanitizeAdoptanteInput(req: Request, res: Response, next: NextFunction)
     tieneOtrosAnimales: req.body.tieneOtrosAnimales,
     otrosAnimalesDetalle: req.body.otrosAnimalesDetalle,
   }
-
-  Object.keys(req.body.sanitizedInput).forEach((key) => {
-    if (req.body.sanitizedInput[key] == null) {
-      delete req.body.sanitizedInput[key]
-    }
-  })
-
+  // Elimina los campos null o undefined para permitir actualizaciones parciales.
+  removeNullish(req.body.sanitizedInput)
   next()
 }
 
+// Devuelve todos los Adoptantes.
 async function findAll(req: Request, res: Response) {
   try {
     const adoptantes = await orm.em.find(Adoptante, {}, { populate: ['localidad'] })
@@ -41,6 +40,7 @@ async function findAll(req: Request, res: Response) {
   }
 }
 
+// Busca un Adoptante por ID. Devuelve 404 si no existe.
 async function findOne(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -55,6 +55,7 @@ async function findOne(req: Request, res: Response) {
   }
 }
 
+// La contraseña se guarda como hash y la verificación comienza en false.
 async function create(req: Request, res: Response) {
   try {
     const contrasenaHasheada = await bcrypt.hash(req.body.sanitizedInput.contrasena, 10)
@@ -64,6 +65,7 @@ async function create(req: Request, res: Response) {
       verificacion: false,
     })
     await orm.em.flush()
+    // Carga la localidad para incluir sus datos completos en la respuesta.
     await orm.em.populate(adoptante, ['localidad'])
     res.status(201).json({ message: 'Adoptante creado', data: adoptante })
   } catch (error: any) {
@@ -71,7 +73,7 @@ async function create(req: Request, res: Response) {
     res.status(500).json({ message: 'Error al crear el adoptante' })
   }
 }
-
+ 
 async function update(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -79,11 +81,13 @@ async function update(req: Request, res: Response) {
     if (!adoptante) {
       return res.status(404).json({ message: 'Adoptante no encontrado' })
     }
+    // Solo se re-hashea si viene contraseña nueva (mismo criterio que Usuario).
     if (req.body.sanitizedInput.contrasena) {
       req.body.sanitizedInput.contrasena = await bcrypt.hash(req.body.sanitizedInput.contrasena, 10)
     }
     orm.em.assign(adoptante, req.body.sanitizedInput)
     await orm.em.flush()
+    // Carga la localidad para incluir sus datos completos en la respuesta.
     await orm.em.populate(adoptante, ['localidad'])
     res.status(200).json({ message: 'Adoptante actualizado', data: adoptante })
   } catch (error: any) {
@@ -92,6 +96,7 @@ async function update(req: Request, res: Response) {
   }
 }
 
+// Se verifica que el Adoptante exista antes de eliminarlo.
 async function remove(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -107,5 +112,5 @@ async function remove(req: Request, res: Response) {
     res.status(500).json({ message: 'Error al eliminar el adoptante' })
   }
 }
-
+// Exportamos el middleware y las funciones del controller.
 export { sanitizeAdoptanteInput, findAll, findOne, create, update, remove }
