@@ -27,18 +27,38 @@ GET http://localhost:3000/api/solicitudes/1
 ### Eliminar una solicitud
 DELETE http://localhost:3000/api/solicitudes/1
 
-### Verificar que la mascota cambió de estado
-GET http://localhost:3000/api/mascotas/2
+### Obtener solicitudes pendientes
+GET http://localhost:3000/api/solicitudes?estado=PENDIENTE
 
-### Intentar solicitar una mascota que ya no está disponible
+### ===== EPIC B: revisar solicitudes =====
+
+### Precondición para lo que sigue: crear una segunda solicitud sobre la
+### misma mascota (id 2), para poder comprobar el rechazo en cascada.
 POST http://localhost:3000/api/solicitudes
 Content-Type: application/json
 
 {
-  "mensaje": "Otro intento sobre la misma mascota",
+  "mensaje": "Yo también quiero adoptarlo",
   "mascota": 2,
-  "adoptante": 4
+  "adoptante": 5
 }
 
-### Obtener solicitudes pendientes
-GET http://localhost:3000/api/solicitudes?estado=PENDIENTE
+### Aprobar la primera solicitud sobre la mascota 2 (reemplazar :id por el
+### id real devuelto al crearla). Debería devolver 200 con estado APROBADA.
+PATCH http://localhost:3000/api/solicitudes/2/aprobar
+
+### Verificar que la mascota pasó a ADOPTADA
+GET http://localhost:3000/api/mascotas/2
+
+### Verificar que la segunda solicitud sobre la mascota 2 fue
+### rechazada automáticamente por la cascada
+GET http://localhost:3000/api/solicitudes/3
+
+### Intentar aprobar una solicitud que ya fue evaluada -> 409
+PATCH http://localhost:3000/api/solicitudes/2/aprobar
+
+### Rechazar una solicitud PENDIENTE sobre otra mascota
+PATCH http://localhost:3000/api/solicitudes/4/rechazar
+
+### Intentar rechazar una solicitud ya evaluada -> 409
+PATCH http://localhost:3000/api/solicitudes/4/rechazar
