@@ -22,3 +22,5 @@ dist/
 # Editor: se ignora todo .vscode salvo lo que sí queremos compartir con el equipo
 .vscode/*
 !.vscode/launch.json
+# Archivos subidos por los usuarios (fotos) — no se versionan
+uploads/
