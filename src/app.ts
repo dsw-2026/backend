@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 import express from 'express'
 import cors from 'cors'
+import path from 'node:path'
 import { RequestContext } from '@mikro-orm/core'
 import { orm, syncSchema } from './shared/db/orm.js'
 import { especieRouter } from './especie/especie.routes.js'
@@ -11,6 +12,7 @@ import { adoptanteRouter } from './adoptante/adoptante.routes.js'
 import { mascotaRouter } from './mascota/mascota.routes.js'
 import { localidadRouter } from './localidad/localidad.routes.js'
 import { solicitudRouter } from './solicitud/solicitud.routes.js'
+import { uploadRouter } from './upload/upload.routes.js'
 
 export const app = express()
 
@@ -21,6 +23,12 @@ export const app = express()
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173' }))
 
 app.use(express.json())
+
+// Sirve la carpeta uploads/ (raíz del proyecto) como archivos estáticos:
+// una imagen guardada como uploads/xxxx.jpg queda accesible en
+// http://localhost:3000/uploads/xxxx.jpg — esa es la URL que se persiste
+// en los campos foto/fotoPerfil.
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 
 // Crea un EntityManager aislado por cada petición HTTP (Unit of Work
 // independiente), evitando que peticiones concurrentes se interfieran
@@ -39,6 +47,7 @@ app.use('/api/adoptantes', adoptanteRouter)
 app.use('/api/mascotas', mascotaRouter)
 app.use('/api/localidades', localidadRouter)
 app.use('/api/solicitudes', solicitudRouter)
+app.use('/api/uploads', uploadRouter)
 
 // Catch-all: atrapa cualquier petición que no coincidió con ninguna ruta
 // anterior, devolviendo un 404 en JSON en vez del HTML por defecto de
