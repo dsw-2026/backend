@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 import express from 'express'
+import cors from 'cors'
 import { RequestContext } from '@mikro-orm/core'
 import { orm, syncSchema } from './shared/db/orm.js'
 import { especieRouter } from './especie/especie.routes.js'
@@ -12,6 +13,12 @@ import { localidadRouter } from './localidad/localidad.routes.js'
 import { solicitudRouter } from './solicitud/solicitud.routes.js'
 
 export const app = express()
+
+// Habilita al frontend (otro origin: puerto distinto) a consultar esta API.
+// Sin esto, el navegador bloquea toda respuesta del backend aunque el
+// pedido haya llegado bien — CORS_ORIGIN se puede sobreescribir por .env
+// si en el futuro el frontend corre en otra URL (ej: al deployar).
+app.use(cors({ origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173' }))
 
 app.use(express.json())
 
