@@ -12,10 +12,7 @@ Content-Type: application/json
   "contrasena": "claveSegura789",
   "email": "juan@example.com",
   "occupation": "Diseñador gráfico",
-  "tipoVivienda": "CASA",
-  "tienePatio": true,
-  "tieneOtrosAnimales": true,
-  "otrosAnimalesDetalle": "Un gato de 2 años"
+  "tipoVivienda": "CASA"
 }
 
 ### Obtener un adoptante por id
@@ -26,7 +23,7 @@ PATCH http://localhost:3000/api/adoptantes/1
 Content-Type: application/json
 
 {
-  "tienePatio": false
+  "occupation": "Diseñador gráfico senior"
 }
 
 ### Eliminar un adoptante

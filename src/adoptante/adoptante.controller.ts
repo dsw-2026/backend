@@ -2,10 +2,16 @@ import { Request, Response, NextFunction } from 'express'
 import bcrypt from 'bcrypt'
 import { orm } from '../shared/db/orm.js'
 import { Adoptante } from './adoptante.entity.js'
+import { Usuario } from '../usuario/usuario.entity.js'
 import { removeNullish } from '../shared/utils/removeNullish.js'
+import { assertUnico, ConflictoUnicidadError } from '../shared/utils/assertUnico.js'
 
 // Del body recibido, solo conservamos los campos permitidos para Adoptante,
 // tanto los heredados de Usuario como los propios de esta subclase.
+//
+// "verificacion" se incluye acá con el mismo criterio que en Publicador
+// (ver TODO ahí y /areas/fluffy.md): CRUD completo ahora, restricción por
+// rol como capa aparte cuando exista auth.
 function sanitizeAdoptanteInput(req: Request, res: Response, next: NextFunction) {
   req.body.sanitizedInput = {
     nombreUsuario: req.body.nombreUsuario,
@@ -18,11 +24,9 @@ function sanitizeAdoptanteInput(req: Request, res: Response, next: NextFunction)
     direccion: req.body.direccion,
     fotoPerfil: req.body.fotoPerfil,
     localidad: req.body.localidad,
+    verificacion: req.body.verificacion,
     occupation: req.body.occupation,
     tipoVivienda: req.body.tipoVivienda,
-    tienePatio: req.body.tienePatio,
-    tieneOtrosAnimales: req.body.tieneOtrosAnimales,
-    otrosAnimalesDetalle: req.body.otrosAnimalesDetalle,
   }
   // Elimina los campos null o undefined para permitir actualizaciones parciales.
   removeNullish(req.body.sanitizedInput)
@@ -58,6 +62,17 @@ async function findOne(req: Request, res: Response) {
 // La contraseña se guarda como hash y la verificación comienza en false.
 async function create(req: Request, res: Response) {
   try {
+    // Se valida contra Usuario (no contra Adoptante): nombreUsuario y
+    // email son únicos para TODA la tabla compartida por herencia
+    // (Publicador + Adoptante), no solo entre adoptantes.
+    await assertUnico(
+      orm.em,
+      Usuario,
+      { nombreUsuario: req.body.sanitizedInput.nombreUsuario, email: req.body.sanitizedInput.email },
+      undefined,
+      { nombreUsuario: 'Ese nombre de usuario ya está en uso', email: 'Ya existe una cuenta con ese email' }
+    )
+
     const contrasenaHasheada = await bcrypt.hash(req.body.sanitizedInput.contrasena, 10)
     const adoptante = orm.em.create(Adoptante, {
       ...req.body.sanitizedInput,
@@ -69,6 +84,9 @@ async function create(req: Request, res: Response) {
     await orm.em.populate(adoptante, ['localidad'])
     res.status(201).json({ message: 'Adoptante creado', data: adoptante })
   } catch (error: any) {
+    if (error instanceof ConflictoUnicidadError) {
+      return res.status(409).json({ message: error.message, field: error.field })
+    }
     console.error(error)
     res.status(500).json({ message: 'Error al crear el adoptante' })
   }
@@ -81,6 +99,17 @@ async function update(req: Request, res: Response) {
     if (!adoptante) {
       return res.status(404).json({ message: 'Adoptante no encontrado' })
     }
+
+    // idExcluir: id evita que choque contra sí mismo si no cambió su
+    // propio nombreUsuario/email.
+    await assertUnico(
+      orm.em,
+      Usuario,
+      { nombreUsuario: req.body.sanitizedInput.nombreUsuario, email: req.body.sanitizedInput.email },
+      id,
+      { nombreUsuario: 'Ese nombre de usuario ya está en uso', email: 'Ya existe una cuenta con ese email' }
+    )
+
     // Solo se re-hashea si viene contraseña nueva (mismo criterio que Usuario).
     if (req.body.sanitizedInput.contrasena) {
       req.body.sanitizedInput.contrasena = await bcrypt.hash(req.body.sanitizedInput.contrasena, 10)
@@ -91,6 +120,9 @@ async function update(req: Request, res: Response) {
     await orm.em.populate(adoptante, ['localidad'])
     res.status(200).json({ message: 'Adoptante actualizado', data: adoptante })
   } catch (error: any) {
+    if (error instanceof ConflictoUnicidadError) {
+      return res.status(409).json({ message: error.message, field: error.field })
+    }
     console.error(error)
     res.status(500).json({ message: 'Error al actualizar el adoptante' })
   }

@@ -19,14 +19,4 @@ export class Adoptante extends Usuario {
 // Enum para limitar el tipo de vivienda a opciones predefinidas.
   @Enum({ items: () => Object.values(TipoVivienda), nullable: true })
   tipoVivienda?: TipoVivienda
-
-  @Property({ nullable: true })
-  tienePatio?: boolean
-
-  // Se separó en dos campos (booleano + detalle) 
-  @Property({ nullable: true })
-  tieneOtrosAnimales?: boolean
-
-  @Property({ nullable: true })
-  otrosAnimalesDetalle?: string
 }
