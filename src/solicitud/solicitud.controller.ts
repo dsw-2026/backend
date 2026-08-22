@@ -9,40 +9,28 @@ import { removeNullish } from '../shared/utils/removeNullish.js'
 // para que la respuesta traiga la información completa de la mascota,
 // no solo su id, útil para que el Publicador evalúe la solicitud.
 
-const POPULATE = ['mascota', 'mascota.especie', 'mascota.caracteristica', 'adoptante'] as const
+const POPULATE = [
+  'mascota',
+  'mascota.especie',
+  'mascota.caracteristica',
+  'adoptante',
+  'adoptante.localidad',
+  'adoptante.localidad.provincia',
+] as const
 
 function sanitizeSolicitudInput(req: Request, res: Response, next: NextFunction) {
   req.body.sanitizedInput = {
     mensaje: req.body.mensaje,
     mascota: req.body.mascota,
     adoptante: req.body.adoptante,
+    energiaDeseada: req.body.energiaDeseada,
+    tamanioDeseado: req.body.tamanioDeseado,
+    toleraNinosDeseado: req.body.toleraNinosDeseado,
+    toleraAnimalesDeseado: req.body.toleraAnimalesDeseado,
+    toleraEncierroDeseado: req.body.toleraEncierroDeseado,
   }
   removeNullish(req.body.sanitizedInput)
   next()
-}
-
-// Compara datos de la caracteristica de la Mascota con datos del Adoptante, sumando/restando
-// puntos según la compatibilidad. Se calcula UNA VEZ al crear la Solicitud
-// y se persiste (no se recalcula dinámicamente), para que el número
-// refleje exactamente la situación en el momento de la decisión.
-
-function calcularNivelCompatibilidad(mascota: Mascota, adoptante: Adoptante): number {
-  let nivel = 0
-  const caracteristica = mascota.caracteristica
-
-  if (caracteristica.toleraNinos === 'SI') nivel += 1
-
-  if (adoptante.tieneOtrosAnimales && caracteristica.toleraAnimales === 'SI') {
-    nivel += 2
-  } else if (adoptante.tieneOtrosAnimales && caracteristica.toleraAnimales === 'NO') {
-    nivel -= 2
-  }
-
-  if (adoptante.tienePatio && (caracteristica.tamanio === 'GRANDE' || caracteristica.tamanio === 'GIGANTE')) {
-    nivel += 1
-  }
-
-  return nivel
 }
 
 async function findAll(req: Request, res: Response) {
@@ -99,15 +87,26 @@ async function create(req: Request, res: Response) {
       return res.status(404).json({ message: 'Adoptante no encontrado' })
     }
 
-    const nivelCompatibilidad = calcularNivelCompatibilidad(mascota, adoptante)
+    // Un mismo Adoptante puede solicitar varias mascotas distintas (eso
+    // sí está permitido, ver comentario arriba sobre múltiples
+    // solicitudes por mascota), pero no repetir la solicitud sobre la
+    // MISMA mascota dos veces.
+    const solicitudExistente = await orm.em.findOne(Solicitud, { mascota: mascotaId, adoptante: adoptanteId })
+    if (solicitudExistente) {
+      return res.status(409).json({ message: 'Este adoptante ya tiene una solicitud registrada para esta mascota' })
+    }
 
     const solicitud = orm.em.create(Solicitud, {
       mensaje: req.body.sanitizedInput.mensaje,
       mascota,
       adoptante,
       estado: EstadoSolicitud.PENDIENTE,
-      nivelCompatibilidad,
       fechaSolicitud: new Date(),
+      energiaDeseada: req.body.sanitizedInput.energiaDeseada,
+      tamanioDeseado: req.body.sanitizedInput.tamanioDeseado,
+      toleraNinosDeseado: req.body.sanitizedInput.toleraNinosDeseado,
+      toleraAnimalesDeseado: req.body.sanitizedInput.toleraAnimalesDeseado,
+      toleraEncierroDeseado: req.body.sanitizedInput.toleraEncierroDeseado,
     })
 
     await orm.em.flush()

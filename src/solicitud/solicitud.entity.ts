@@ -3,6 +3,7 @@ import { Rel } from '@mikro-orm/core'
 import { BaseEntity } from '../shared/db/base.entity.js'
 import { Mascota } from '../mascota/mascota.entity.js'
 import { Adoptante } from '../adoptante/adoptante.entity.js'
+import { Energia, Tamanio, Tolerancia } from '../caracteristica/caracteristica.entity.js'
 
 export const EstadoSolicitud = {
   PENDIENTE: 'PENDIENTE',
@@ -25,12 +26,25 @@ export class Solicitud extends BaseEntity {
   @Property({ nullable: true, columnType: 'text' })
   mensaje?: string
 
-  // Atributo derivado (calculado): se computa UNA VEZ al crear la
-  // solicitud (calcularNivelCompatibilidad en el controller) y se
-  // persiste como una "foto" de ese momento, en vez de recalcularse
-  // dinámicamente cada vez que se consulta.
-  @Property({ nullable: false })
-  nivelCompatibilidad!: number
+  // Preferencias que declara el Adoptante en ESTA solicitud puntual. Se
+  // comparan solo contra Caracteristica, uno a uno (decisión del equipo:
+  // los atributos del Adoptante no entran en esta comparación). El
+  // resultado se calcula al vuelo cuando se consulta, no se persiste —
+  // ver calcularDesglose en el frontend.
+  @Enum(() => Object.values(Energia))
+  energiaDeseada!: Energia
+
+  @Enum(() => Object.values(Tamanio))
+  tamanioDeseado!: Tamanio
+
+  @Enum(() => Object.values(Tolerancia))
+  toleraNinosDeseado!: Tolerancia
+
+  @Enum(() => Object.values(Tolerancia))
+  toleraAnimalesDeseado!: Tolerancia
+
+  @Enum(() => Object.values(Tolerancia))
+  toleraEncierroDeseado!: Tolerancia
 
   // Sin cascada: no se debe poder borrar una Mascota o un Adoptante
   // mientras tengan solicitudes asociadas, para no perder el historial.
