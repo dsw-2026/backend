@@ -1,11 +1,12 @@
 import { Router } from 'express'
 import { sanitizeSolicitudInput, findAll, findOne, create, aprobar, rechazar, remove } from './solicitud.controller.js'
+import { verificarToken, verificarTipo } from '../auth/auth.middleware.js'
 
 export const solicitudRouter = Router()
 
-solicitudRouter.get('/', findAll)
-solicitudRouter.get('/:id', findOne)
-solicitudRouter.post('/', sanitizeSolicitudInput, create)
-solicitudRouter.patch('/:id/aprobar', aprobar)
-solicitudRouter.patch('/:id/rechazar', rechazar)
-solicitudRouter.delete('/:id', remove)
+solicitudRouter.get('/', verificarToken, findAll)
+solicitudRouter.get('/:id', verificarToken, findOne)
+solicitudRouter.post('/', verificarToken, verificarTipo('Adoptante'), sanitizeSolicitudInput, create)
+solicitudRouter.put('/:id/aprobar', verificarToken, verificarTipo('Publicador'), aprobar)
+solicitudRouter.put('/:id/rechazar', verificarToken, verificarTipo('Publicador'), rechazar)
+solicitudRouter.delete('/:id', verificarToken, remove)

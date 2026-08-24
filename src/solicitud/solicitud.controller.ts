@@ -35,14 +35,21 @@ function sanitizeSolicitudInput(req: Request, res: Response, next: NextFunction)
 
 async function findAll(req: Request, res: Response) {
   try {
+    const { id, tipo } = req.usuario!
     const filtro: any = {}
-    if (req.query.estado) {
-      filtro.estado = req.query.estado
+    if (req.query.estado) filtro.estado = req.query.estado
+
+    if (tipo === 'Adoptante') {
+      filtro.adoptante = id
+    } else if (tipo === 'Publicador') {
+      filtro.mascota = { publicador: id }
+    } else {
+      // Cualquier tipo inesperado no ve nada, en vez de heredar
+      // silenciosamente un filtro vacío (= ver todo).
+      return res.status(403).json({ message: 'Rol no autorizado' })
     }
-    const solicitudes = await orm.em.find(Solicitud, filtro, {
-      populate: POPULATE,
-      orderBy: { fechaSolicitud: 'DESC' },
-    })
+
+    const solicitudes = await orm.em.find(Solicitud, filtro, { populate: POPULATE, orderBy: { fechaSolicitud: 'DESC' } })
     res.status(200).json({ message: 'Solicitudes encontradas', data: solicitudes })
   } catch (error: any) {
     console.error(error)
@@ -57,6 +64,18 @@ async function findOne(req: Request, res: Response) {
     if (!solicitud) {
       return res.status(404).json({ message: 'Solicitud no encontrada' })
     }
+
+    // Sin rol Admin: solo puede ver la solicitud el adoptante que la hizo
+    // o el publicador dueño de la mascota involucrada. Cualquier otro
+    // caso (otro adoptante, otro publicador, tipo inesperado) queda afuera.
+    const { id: userId, tipo } = req.usuario!
+    const esElAdoptante = tipo === 'Adoptante' && solicitud.adoptante.id === userId
+    const esElPublicador = tipo === 'Publicador' && solicitud.mascota.publicador.id === userId
+
+    if (!esElAdoptante && !esElPublicador) {
+      return res.status(403).json({ message: 'No tenés acceso a esta solicitud' })
+    }
+
     res.status(200).json({ message: 'Solicitud encontrada', data: solicitud })
   } catch (error: any) {
     console.error(error)
@@ -72,7 +91,7 @@ async function findOne(req: Request, res: Response) {
 async function create(req: Request, res: Response) {
   try {
     const mascotaId = Number(req.body.sanitizedInput.mascota)
-    const adoptanteId = Number(req.body.sanitizedInput.adoptante)
+    const adoptanteId = req.usuario!.id // se usa el id que llega en el token
 
     const mascota = await orm.em.findOne(Mascota, { id: mascotaId }, { populate: ['caracteristica'] })
     if (!mascota) {
@@ -132,7 +151,10 @@ async function aprobar(req: Request, res: Response) {
     if (!solicitud) {
       return res.status(404).json({ message: 'Solicitud no encontrada' })
     }
-
+    // valida que la mascota le pertenezca al Publicador logueado
+    if (solicitud.mascota.publicador.id !== req.usuario!.id) {
+      return res.status(403).json({ message: 'Publicador no autorizado' })
+    }
     // Solo se puede aprobar una solicitud que todavía esté PENDIENTE: evita
     // reabrir una decisión ya tomada (aprobar una ya RECHAZADA, o volver a
     // aprobar una ya APROBADA).
@@ -180,11 +202,14 @@ async function aprobar(req: Request, res: Response) {
 async function rechazar(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
-    const solicitud = await orm.em.findOne(Solicitud, { id })
+    const solicitud = await orm.em.findOne(Solicitud, { id }, { populate: ['mascota'] })
     if (!solicitud) {
       return res.status(404).json({ message: 'Solicitud no encontrada' })
     }
-
+    // valida que la mascota le pertenezca al Publicador logueado
+    if (solicitud.mascota.publicador.id !== req.usuario!.id) {
+      return res.status(403).json({ message: 'Publicador no autorizado' })
+    }
     if (solicitud.estado !== EstadoSolicitud.PENDIENTE) {
       return res.status(409).json({ message: 'La solicitud ya fue evaluada' })
     }
@@ -204,10 +229,24 @@ async function rechazar(req: Request, res: Response) {
 async function remove(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
-    const solicitud = await orm.em.findOne(Solicitud, { id })
+    // Se populan mascota y adoptante: ambos hacen falta para validar
+    // pertenencia más abajo (publicador dueño de la mascota, o adoptante
+    // dueño de la solicitud).
+    const solicitud = await orm.em.findOne(Solicitud, { id }, { populate: ['mascota', 'adoptante'] })
     if (!solicitud) {
       return res.status(404).json({ message: 'Solicitud no encontrada' })
     }
+
+    // Solo puede eliminarla: el adoptante que la creó, o el publicador
+    // dueño de la mascota involucrada. Nadie más, aunque esté logueado.
+    const { id: userId, tipo } = req.usuario!
+    const esElAdoptante = tipo === 'Adoptante' && solicitud.adoptante.id === userId
+    const esElPublicador = tipo === 'Publicador' && solicitud.mascota.publicador.id === userId
+
+    if (!esElAdoptante && !esElPublicador) {
+      return res.status(403).json({ message: 'No tenés permiso para eliminar esta solicitud' })
+    }
+
     orm.em.remove(solicitud)
     await orm.em.flush()
     res.status(200).json({ message: 'Solicitud eliminada exitosamente' })
