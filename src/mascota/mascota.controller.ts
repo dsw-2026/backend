@@ -39,12 +39,17 @@ function sanitizeMascotaInput(req: Request, res: Response, next: NextFunction) {
 // Relaciones que se cargan junto con la Mascota.
 const POPULATE = ['especie', 'publicador', 'caracteristica'] as const
 
-// Permite filtrar las mascotas por estado mediante el query param ?estado=. Sin filtro, trae todas.
+// Permite filtrar las mascotas por estado (?estado=) y/o por especie (?especie=).
+// Sin filtros, trae todas. El listado de mascotas disponibles para adoptar
+// (filtrado por especie) es el mismo endpoint, solo cambia el query param.
 async function findAll(req: Request, res: Response) {
   try {
     const filtro: any = {}
     if (req.query.estado) {
       filtro.estado = req.query.estado
+    }
+    if (req.query.especie) {
+      filtro.especie = Number(req.query.especie)
     }
     const mascotas = await orm.em.find(Mascota, filtro, { populate: POPULATE })
     res.status(200).json({ message: 'Mascotas encontradas', data: mascotas })

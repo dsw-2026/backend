@@ -39,7 +39,10 @@ async function findAll(req: Request, res: Response) {
     if (req.query.estado) {
       filtro.estado = req.query.estado
     }
-    const solicitudes = await orm.em.find(Solicitud, filtro, { populate: POPULATE })
+    const solicitudes = await orm.em.find(Solicitud, filtro, {
+      populate: POPULATE,
+      orderBy: { fechaSolicitud: 'DESC' },
+    })
     res.status(200).json({ message: 'Solicitudes encontradas', data: solicitudes })
   } catch (error: any) {
     console.error(error)
