@@ -13,6 +13,8 @@ import { mascotaRouter } from './mascota/mascota.routes.js'
 import { localidadRouter } from './localidad/localidad.routes.js'
 import { solicitudRouter } from './solicitud/solicitud.routes.js'
 import { uploadRouter } from './upload/upload.routes.js'
+import { authRouter } from './auth/auth.routes.js'
+
 
 export const app = express()
 
@@ -48,6 +50,7 @@ app.use('/api/mascotas', mascotaRouter)
 app.use('/api/localidades', localidadRouter)
 app.use('/api/solicitudes', solicitudRouter)
 app.use('/api/uploads', uploadRouter)
+app.use('/api/auth', authRouter)
 
 // Catch-all: atrapa cualquier petición que no coincidió con ninguna ruta
 // anterior, devolviendo un 404 en JSON en vez del HTML por defecto de

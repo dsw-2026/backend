@@ -1,0 +1,39 @@
+### Crear un usuario de prueba para el login
+POST http://localhost:3000/api/publicadores
+Content-Type: application/json
+
+{
+  "nombreUsuario": "test_login",
+  "nombre": "Test",
+  "apellido": "Login",
+  "contrasena": "claveDePrueba123",
+  "email": "test_login@example.com",
+  "tipo": "REFUGIO"
+}
+
+### Login correcto
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test_login@example.com",
+  "contrasena": "claveDePrueba123"
+}
+
+### Login con contraseña incorrecta
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test_login@example.com",
+  "contrasena": "contraseñaEquivocada"
+}
+
+### Login con email inexistente
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "noexiste@example.com",
+  "contrasena": "cualquiera"
+}
