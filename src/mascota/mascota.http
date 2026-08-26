@@ -1,9 +1,59 @@
+### =========================================
+### LOGIN
+### =========================================
+
+### Login como Publicador
+# @name loginPublicador
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "refugio@example.com",
+  "contrasena": "claveSegura456"
+}
+
+### Login como Adoptante
+# @name loginAdoptante
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "juan@example.com",
+  "contrasena": "claveSegura789"
+}
+
+###
+@tokenPublicador = {{loginPublicador.response.body.data.token}}
+@tokenAdoptante = {{loginAdoptante.response.body.data.token}}
+
+### =========================================
+### OBTENER MASCOTAS
+### =========================================
+
 ### Obtener todas las mascotas
 GET http://localhost:3000/api/mascotas
 
-### Crear una nueva mascota (con su característica)
+### Obtener todas las mascotas disponibles
+GET http://localhost:3000/api/mascotas?estado=DISPONIBLE
+
+### Obtener mascotas por especie
+GET http://localhost:3000/api/mascotas?especie=1
+
+### Obtener una mascota por id
+GET http://localhost:3000/api/mascotas/9
+
+### Obtener una mascota inexistente
+GET http://localhost:3000/api/mascotas/99999
+
+### =========================================
+### CREAR MASCOTA
+### =========================================
+
+### Crear una mascota (Publicador autenticado)
+# @name crearMascota
 POST http://localhost:3000/api/mascotas
 Content-Type: application/json
+Authorization: Bearer {{tokenPublicador}}
 
 {
   "nombre": "Firulais",
@@ -13,7 +63,6 @@ Content-Type: application/json
   "estado": "DISPONIBLE",
   "foto": "https://ejemplo.com/firulais.jpg",
   "especie": 1,
-  "publicador": 3,
   "energia": "ALTA",
   "caracter": "Juguetón y muy cariñoso",
   "tamanio": "MEDIANO",
@@ -25,21 +74,117 @@ Content-Type: application/json
   "observacionesAdicionales": "Le encanta jugar a la pelota"
 }
 
-### Obtener una mascota por id
-GET http://localhost:3000/api/mascotas/1
-
-### Modificar parcialmente una mascota
-PATCH http://localhost:3000/api/mascotas/1
+### Crear mascota sin autenticación (401)
+POST http://localhost:3000/api/mascotas
 Content-Type: application/json
 
 {
-  "estado": "EN_PROCESO"
+  "nombre": "SinAuth",
+  "sexo": "MACHO",
+  "edad": 1,
+  "unidadEdad": "ANIOS",
+  "estado": "DISPONIBLE",
+  "foto": "https://ejemplo.com/x.jpg",
+  "especie": 1,
+  "energia": "ALTA",
+  "caracter": "test",
+  "tamanio": "MEDIANO",
+  "vacunacion": true,
+  "castracion": false,
+  "toleraNinos": "SI",
+  "toleraAnimales": "SI",
+  "toleraEncierro": "NO"
 }
 
-### Eliminar una mascota
-DELETE http://localhost:3000/api/mascotas/1
+### Crear mascota como Adoptante (403)
+POST http://localhost:3000/api/mascotas
+Content-Type: application/json
+Authorization: Bearer {{tokenAdoptante}}
 
-### Obtener todas las mascotas disponibles
-GET http://localhost:3000/api/mascotas?estado=DISPONIBLE
+{
+  "nombre": "NoDeberia",
+  "sexo": "MACHO",
+  "edad": 1,
+  "unidadEdad": "ANIOS",
+  "estado": "DISPONIBLE",
+  "foto": "https://ejemplo.com/x.jpg",
+  "especie": 1,
+  "energia": "ALTA",
+  "caracter": "test",
+  "tamanio": "MEDIANO",
+  "vacunacion": true,
+  "castracion": false,
+  "toleraNinos": "SI",
+  "toleraAnimales": "SI",
+  "toleraEncierro": "NO"
+}
 
-GET http://localhost:3000/api/mascotas?especie=1
+### Crear mascota con especie inexistente (404)
+POST http://localhost:3000/api/mascotas
+Content-Type: application/json
+Authorization: Bearer {{tokenPublicador}}
+
+{
+  "nombre": "SinEspecie",
+  "sexo": "MACHO",
+  "edad": 1,
+  "unidadEdad": "ANIOS",
+  "estado": "DISPONIBLE",
+  "foto": "https://ejemplo.com/x.jpg",
+  "especie": 99999,
+  "energia": "ALTA",
+  "caracter": "test",
+  "tamanio": "MEDIANO",
+  "vacunacion": true,
+  "castracion": false,
+  "toleraNinos": "SI",
+  "toleraAnimales": "SI",
+  "toleraEncierro": "NO"
+}
+
+### =========================================
+### MODIFICAR MASCOTA
+### =========================================
+
+### Modificar parcialmente una mascota (Publicador dueño)
+PATCH http://localhost:3000/api/mascotas/9
+Content-Type: application/json
+Authorization: Bearer {{tokenPublicador}}
+
+{
+  "estado": "DISPONIBLE",
+  "observacionesAdicionales": "Actualizado desde test"
+}
+
+### Modificar mascota sin autenticación (401)
+PATCH http://localhost:3000/api/mascotas/9
+Content-Type: application/json
+
+{
+  "observacionesAdicionales": "No debería funcionar"
+}
+
+### Modificar mascota inexistente (404)
+PATCH http://localhost:3000/api/mascotas/99999
+Content-Type: application/json
+Authorization: Bearer {{tokenPublicador}}
+
+{
+  "observacionesAdicionales": "No existe"
+}
+
+### =========================================
+### ELIMINAR MASCOTA
+### =========================================
+
+### Eliminar una mascota con solicitudes asociadas (si se creo solicitud)(409)
+DELETE http://localhost:3000/api/mascotas/9
+Authorization: Bearer {{tokenPublicador}}
+
+### Eliminar mascota como Adoptante (403)
+DELETE http://localhost:3000/api/mascotas/9
+Authorization: Bearer {{tokenAdoptante}}
+
+### Eliminar mascota inexistente (404)
+DELETE http://localhost:3000/api/mascotas/99999
+Authorization: Bearer {{tokenPublicador}}

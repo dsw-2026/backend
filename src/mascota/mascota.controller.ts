@@ -2,7 +2,10 @@ import { Request, Response, NextFunction } from 'express'
 import { orm } from '../shared/db/orm.js'
 import { Mascota } from './mascota.entity.js'
 import { Caracteristica } from '../caracteristica/caracteristica.entity.js'
+import { Publicador } from '../publicador/publicador.entity.js'
+import { Especie } from '../especie/especie.entity.js'
 import { removeNullish } from '../shared/utils/removeNullish.js'
+import { Solicitud } from '../solicitud/solicitud.entity.js'
 
 // Separa el body en dos objetos: campos de Mascota y de Caracteristica.
 // Se crean juntas en la misma petición (ver create más abajo).
@@ -15,7 +18,7 @@ function sanitizeMascotaInput(req: Request, res: Response, next: NextFunction) {
     estado: req.body.estado,
     foto: req.body.foto,
     especie: req.body.especie,
-    publicador: req.body.publicador,
+    // publicador ya no se toma del body: sale de req.usuario!.id en create
   }
 
   req.body.sanitizedCaracteristica = {
@@ -35,13 +38,13 @@ function sanitizeMascotaInput(req: Request, res: Response, next: NextFunction) {
 
   next()
 }
-
 // Relaciones que se cargan junto con la Mascota.
 const POPULATE = ['especie', 'publicador', 'caracteristica'] as const
 
 // Permite filtrar las mascotas por estado (?estado=) y/o por especie (?especie=).
 // Sin filtros, trae todas. El listado de mascotas disponibles para adoptar
 // (filtrado por especie) es el mismo endpoint, solo cambia el query param.
+// Lectura pública: no requiere autenticación (listado de mascotas en adopción).
 async function findAll(req: Request, res: Response) {
   try {
     const filtro: any = {}
@@ -59,6 +62,8 @@ async function findAll(req: Request, res: Response) {
   }
 }
 
+
+// Lectura pública: no requiere autenticación (ficha de una mascota puntual).
 async function findOne(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -77,11 +82,27 @@ async function findOne(req: Request, res: Response) {
 // (no existe una Caracteristica sin su mascota).
 async function create(req: Request, res: Response) {
   try {
+    const { id: publicadorId, tipo } = req.usuario!
+
+    const publicador = await orm.em.findOne(Publicador, { id: publicadorId })
+    if (!publicador) {
+      return res.status(404).json({ message: 'Publicador no encontrado' })
+    }
+
+    const especieId = Number(req.body.sanitizedInput.especie)
+    const especie = await orm.em.findOne(Especie, { id: especieId })
+    if (!especie) {
+      return res.status(404).json({ message: 'Especie no encontrada' })
+    }
+
     const caracteristica = orm.em.create(Caracteristica, req.body.sanitizedCaracteristica)
     const mascota = orm.em.create(Mascota, {
       ...req.body.sanitizedInput,
+      publicador,
+      especie,
       caracteristica,
     })
+
     await orm.em.flush()
     await orm.em.populate(mascota, POPULATE)
     res.status(201).json({ message: 'Mascota creada', data: mascota })
@@ -99,6 +120,12 @@ async function update(req: Request, res: Response) {
     if (!mascota) {
       return res.status(404).json({ message: 'Mascota no encontrada' })
     }
+
+    const { id: userId, tipo } = req.usuario!
+    if (tipo !== 'Publicador' || mascota.publicador.id !== userId) {
+      return res.status(403).json({ message: 'No tenés permiso para editar esta mascota' })
+    }
+
     orm.em.assign(mascota, req.body.sanitizedInput)
     orm.em.assign(mascota.caracteristica, req.body.sanitizedCaracteristica)
     await orm.em.flush()
@@ -114,10 +141,26 @@ async function update(req: Request, res: Response) {
 async function remove(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
-    const mascota = await orm.em.findOne(Mascota, { id })
+    const mascota = await orm.em.findOne(Mascota, { id }, { populate: ['publicador'] })
     if (!mascota) {
       return res.status(404).json({ message: 'Mascota no encontrada' })
     }
+
+    const { id: userId, tipo } = req.usuario!
+    if (tipo !== 'Publicador' || mascota.publicador.id !== userId) {
+      return res.status(403).json({ message: 'No tenés permiso para eliminar esta mascota' })
+    }
+
+    // Chequeo explícito ANTES de intentar el delete: si hay solicitudes
+    // asociadas, se bloquea con un 409 claro en vez de dejar que la FK
+    // constraint tire un error crudo de MySQL (500 genérico).
+    const tieneSolicitudes = await orm.em.count(Solicitud, { mascota: id })
+    if (tieneSolicitudes > 0) {
+      return res.status(409).json({
+        message: 'No se puede eliminar la mascota: tiene solicitudes asociadas',
+      })
+    }
+
     orm.em.remove(mascota)
     await orm.em.flush()
     res.status(200).json({ message: 'Mascota eliminada exitosamente' })

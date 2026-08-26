@@ -35,14 +35,14 @@ function sanitizeSolicitudInput(req: Request, res: Response, next: NextFunction)
 
 async function findAll(req: Request, res: Response) {
   try {
-    const { id, tipo } = req.usuario!
+    const { id, tipo } = req.usuario! // se extrae id y tipo del usuario logueado
     const filtro: any = {}
     if (req.query.estado) filtro.estado = req.query.estado
 
     if (tipo === 'Adoptante') {
-      filtro.adoptante = id
+      filtro.adoptante = id // Si el usuario es Adoptante, solo puede ver solicitudes donde él mismo es el adoptante
     } else if (tipo === 'Publicador') {
-      filtro.mascota = { publicador: id }
+      filtro.mascota = { publicador: id } // Si es Publicador, solo puede ver solicitudes de mascotas que él publicó
     } else {
       // Cualquier tipo inesperado no ve nada, en vez de heredar
       // silenciosamente un filtro vacío (= ver todo).
@@ -65,10 +65,10 @@ async function findOne(req: Request, res: Response) {
       return res.status(404).json({ message: 'Solicitud no encontrada' })
     }
 
-    // Sin rol Admin: solo puede ver la solicitud el adoptante que la hizo
+    // solo puede ver la solicitud el adoptante que la hizo
     // o el publicador dueño de la mascota involucrada. Cualquier otro
     // caso (otro adoptante, otro publicador, tipo inesperado) queda afuera.
-    const { id: userId, tipo } = req.usuario!
+    const { id: userId, tipo } = req.usuario! // la propiedad id del objeto req.usuario se guarda en una variable llamada userId
     const esElAdoptante = tipo === 'Adoptante' && solicitud.adoptante.id === userId
     const esElPublicador = tipo === 'Publicador' && solicitud.mascota.publicador.id === userId
 

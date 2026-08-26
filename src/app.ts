@@ -14,6 +14,7 @@ import { localidadRouter } from './localidad/localidad.routes.js'
 import { solicitudRouter } from './solicitud/solicitud.routes.js'
 import { uploadRouter } from './upload/upload.routes.js'
 import { authRouter } from './auth/auth.routes.js'
+import 'dotenv/config'
 
 
 export const app = express()

@@ -3,11 +3,12 @@ import jwt from 'jsonwebtoken'
 
 // Extendemos el tipo Request para que TypeScript sepa que, después de este
 // middleware, req.usuario puede existir con el payload del token.
+// Define la forma que tiene el contenido (payload) del JWT una vez decodificado
 export interface TokenPayload {
   id: number
   tipo: string // 'Publicador' | 'Adoptante'
 }
-
+// "agrega" esa propiedad al tipo Request de forma global
 declare global {
   namespace Express {
     interface Request {
@@ -18,6 +19,8 @@ declare global {
 
 function verificarToken(req: Request, res: Response, next: NextFunction) {
   // El estándar es mandar el token como "Authorization: Bearer <token>"
+  // El header Authorization lo crea el frontend, en el momento de armar cada petición HTTP hacia una ruta protegida, 
+  // usando el token que guardó después del login
   const authHeader = req.headers.authorization
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -28,7 +31,7 @@ function verificarToken(req: Request, res: Response, next: NextFunction) {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET as string) as TokenPayload
-    // Colgamos el payload en req para que los controladores siguientes
+    // guarda el payload que llega en req para que los controladores siguientes
     // sepan quién está haciendo la petición sin volver a tocar la DB.
     req.usuario = payload
     next()

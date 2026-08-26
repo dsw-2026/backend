@@ -1,64 +1,127 @@
-### Obtener todas las solicitudes
+### =========================================
+### LOGIN
+### =========================================
+
+### Login como Adoptante
+# @name loginAdoptante
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "juan@example.com",
+  "contrasena": "claveSegura789"
+}
+
+### Login como Publicador
+# @name loginPublicador
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "refugio@example.com",
+  "contrasena": "claveSegura456"
+}
+
+###
+@tokenAdoptante = {{loginAdoptante.response.body.data.token}}
+@tokenPublicador = {{loginPublicador.response.body.data.token}}
+
+### =========================================
+### OBTENER SOLICITUDES
+### =========================================
+
+### Obtener todas las solicitudes (como Adoptante)
+GET http://localhost:3000/api/solicitudes
+Authorization: Bearer {{tokenAdoptante}}
+
+### Obtener solicitudes por estado
+GET http://localhost:3000/api/solicitudes?estado=PENDIENTE
+Authorization: Bearer {{tokenAdoptante}}
+
+### Obtener todas las solicitudes sin autenticación (401)
 GET http://localhost:3000/api/solicitudes
 
-### Crear una nueva solicitud
+### Obtener una solicitud por id (Adoptante dueño)
+GET http://localhost:3000/api/solicitudes/3
+Authorization: Bearer {{tokenAdoptante}}
+
+### Obtener una solicitud por id (Publicador dueño de la mascota)
+GET http://localhost:3000/api/solicitudes/3
+Authorization: Bearer {{tokenPublicador}}
+
+### =========================================
+### CREAR SOLICITUD
+### =========================================
+
+### Crear una nueva solicitud (Adoptante autenticado)
+# @name crearSolicitud
 POST http://localhost:3000/api/solicitudes
 Content-Type: application/json
+Authorization: Bearer {{tokenAdoptante}}
 
 {
   "mensaje": "Me encantaría adoptar a Firulais, tengo experiencia con perros grandes",
-  "mascota": 3,
-  "adoptante": 4
+  "mascota": 9,
+  "energiaDeseada": "ALTA",
+  "tamanioDeseado": "MEDIANO",
+  "toleraNinosDeseado": "SI",
+  "toleraAnimalesDeseado": "DESCONOCIDO",
+  "toleraEncierroDeseado": "NO"
 }
 
-### Crear una solicitud sobre una mascota disponible
+### Crear una solicitud como Publicador (403)
 POST http://localhost:3000/api/solicitudes
 Content-Type: application/json
+Authorization: Bearer {{tokenPublicador}}
 
 {
-  "mensaje": "Quiero adoptar a este Firulais también",
-  "mascota": 2,
-  "adoptante": 4
+  "mensaje": "Esto no debería funcionar",
+  "mascota": 9,
+  "energiaDeseada": "ALTA",
+  "tamanioDeseado": "MEDIANO",
+  "toleraNinosDeseado": "SI",
+  "toleraAnimalesDeseado": "DESCONOCIDO",
+  "toleraEncierroDeseado": "NO"
 }
 
-### Obtener una solicitud por id
-GET http://localhost:3000/api/solicitudes/1
-
-### Eliminar una solicitud
-DELETE http://localhost:3000/api/solicitudes/1
-
-### Obtener solicitudes pendientes
-GET http://localhost:3000/api/solicitudes?estado=PENDIENTE
-
-### ===== EPIC B: revisar solicitudes =====
-
-### Precondición para lo que sigue: crear una segunda solicitud sobre la
-### misma mascota (id 2), para poder comprobar el rechazo en cascada.
+### Crear una solicitud duplicada para la misma mascota (409)
 POST http://localhost:3000/api/solicitudes
 Content-Type: application/json
+Authorization: Bearer {{tokenAdoptante}}
 
 {
-  "mensaje": "Yo también quiero adoptarlo",
-  "mascota": 2,
-  "adoptante": 5
+  "mensaje": "Insisto",
+  "mascota": 9,
+  "energiaDeseada": "ALTA",
+  "tamanioDeseado": "MEDIANO",
+  "toleraNinosDeseado": "SI",
+  "toleraAnimalesDeseado": "DESCONOCIDO",
+  "toleraEncierroDeseado": "NO"
 }
 
-### Aprobar la primera solicitud sobre la mascota 2 (reemplazar :id por el
-### id real devuelto al crearla). Debería devolver 200 con estado APROBADA.
-PATCH http://localhost:3000/api/solicitudes/2/aprobar
+### =========================================
+### APROBAR SOLICITUD
+### =========================================
+
+### Aprobar una solicitud (Publicador dueño)
+PATCH http://localhost:3000/api/solicitudes/3/aprobar
+Authorization: Bearer {{tokenPublicador}}
 
 ### Verificar que la mascota pasó a ADOPTADA
-GET http://localhost:3000/api/mascotas/2
+GET http://localhost:3000/api/mascotas/9
 
-### Verificar que la segunda solicitud sobre la mascota 2 fue
-### rechazada automáticamente por la cascada
-GET http://localhost:3000/api/solicitudes/3
+### Aprobar nuevamente la misma solicitud (409)
+PATCH http://localhost:3000/api/solicitudes/3/aprobar
+Authorization: Bearer {{tokenPublicador}}
 
-### Intentar aprobar una solicitud que ya fue evaluada -> 409
-PATCH http://localhost:3000/api/solicitudes/2/aprobar
+### Aprobar una solicitud como Adoptante (403)
+PATCH http://localhost:3000/api/solicitudes/3/aprobar
+Authorization: Bearer {{tokenAdoptante}}
 
-### Rechazar una solicitud PENDIENTE sobre otra mascota
-PATCH http://localhost:3000/api/solicitudes/4/rechazar
+### =========================================
+### ELIMINAR SOLICITUD
+### =========================================
 
-### Intentar rechazar una solicitud ya evaluada -> 409
-PATCH http://localhost:3000/api/solicitudes/4/rechazar
+### Eliminar una solicitud (Adoptante dueño)
+DELETE http://localhost:3000/api/solicitudes/2
+Authorization: Bearer {{tokenAdoptante}}
