@@ -9,12 +9,10 @@ import { assertUnico, ConflictoUnicidadError } from '../shared/utils/assertUnico
 // Del body recibido, solo conservamos los campos permitidos para Publicador,
 // incluyendo tanto los heredados de Usuario como los propios de esta subclase.
 //
-// "verificacion" se incluye acá a propósito, aunque todavía no hay
-// autenticación que restrinja quién puede tocarla — decisión explícita del
-// equipo (ver /areas/fluffy.md): completar el CRUD ahora, restringir por
-// rol como una capa aparte cuando exista auth. TODO: una vez que exista,
-// sacar "verificacion" de acá y que solo se pueda cambiar vía un endpoint
-// dedicado protegido para Admin (como ya existe PATCH /:id/verificar).
+// "verificacion" NO está en la lista, a propósito: si estuviera, cualquier
+// Publicador podría mandar verificacion:true en el PATCH de su propia cuenta
+// y darse solo la insignia de confianza. Ese campo se cambia únicamente por
+// PATCH /api/usuarios/:id/verificar, que está protegido para Admin.
 function sanitizePublicadorInput(req: Request, res: Response, next: NextFunction) {
   req.body.sanitizedInput = {
     nombreUsuario: req.body.nombreUsuario,
@@ -26,7 +24,6 @@ function sanitizePublicadorInput(req: Request, res: Response, next: NextFunction
     descripcion: req.body.descripcion,
     direccion: req.body.direccion,
     fotoPerfil: req.body.fotoPerfil,
-    verificacion: req.body.verificacion,
     tipo: req.body.tipo,
     sitioWeb: req.body.sitioWeb,
     redesSociales: req.body.redesSociales,
@@ -104,6 +101,18 @@ async function update(req: Request, res: Response) {
       return res.status(404).json({ message: 'Publicador no encontrado' })
     }
 
+    // Solo puede editar esta cuenta su propio dueño, o un Admin moderando.
+    // Acá el id del recurso ES el id del usuario, porque la cuenta y la
+    // persona son lo mismo (a diferencia de una Mascota, donde el dueño está
+    // en otro campo).
+    const { id: userId, tipo } = req.usuario!
+    const esElDuenio = tipo === 'Publicador' && id === userId
+    const esAdmin = tipo === 'Admin'
+
+    if (!esElDuenio && !esAdmin) {
+      return res.status(403).json({ message: 'No tenés permiso para editar esta cuenta' })
+    }
+
     // idExcluir: id evita que choque contra sí mismo si no cambió su
     // propio nombreUsuario/email.
     await assertUnico(
@@ -137,6 +146,15 @@ async function remove(req: Request, res: Response) {
     const publicador = await orm.em.findOne(Publicador, { id })
     if (!publicador) {
       return res.status(404).json({ message: 'Publicador no encontrado' })
+    }
+
+    // Mismo criterio que en update: el dueño de la cuenta, o un Admin.
+    const { id: userId, tipo } = req.usuario!
+    const esElDuenio = tipo === 'Publicador' && id === userId
+    const esAdmin = tipo === 'Admin'
+
+    if (!esElDuenio && !esAdmin) {
+      return res.status(403).json({ message: 'No tenés permiso para eliminar esta cuenta' })
     }
     orm.em.remove(publicador)
     await orm.em.flush()
