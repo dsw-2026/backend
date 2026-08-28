@@ -5,13 +5,13 @@ import { Adoptante } from './adoptante.entity.js'
 import { Usuario } from '../usuario/usuario.entity.js'
 import { removeNullish } from '../shared/utils/removeNullish.js'
 import { assertUnico, ConflictoUnicidadError } from '../shared/utils/assertUnico.js'
+import { Solicitud } from '../solicitud/solicitud.entity.js'
 
 // Del body recibido, solo conservamos los campos permitidos para Adoptante,
 // tanto los heredados de Usuario como los propios de esta subclase.
 //
-// "verificacion" se incluye acá con el mismo criterio que en Publicador
-// (ver TODO ahí y /areas/fluffy.md): CRUD completo ahora, restricción por
-// rol como capa aparte cuando exista auth.
+// "verificacion" NO está en la lista, mismo criterio que en Publicador: solo
+// se cambia por PATCH /api/usuarios/:id/verificar, protegido para Admin.
 function sanitizeAdoptanteInput(req: Request, res: Response, next: NextFunction) {
   req.body.sanitizedInput = {
     nombreUsuario: req.body.nombreUsuario,
@@ -24,7 +24,6 @@ function sanitizeAdoptanteInput(req: Request, res: Response, next: NextFunction)
     direccion: req.body.direccion,
     fotoPerfil: req.body.fotoPerfil,
     localidad: req.body.localidad,
-    verificacion: req.body.verificacion,
     occupation: req.body.occupation,
     tipoVivienda: req.body.tipoVivienda,
   }
@@ -52,6 +51,31 @@ async function findOne(req: Request, res: Response) {
     if (!adoptante) {
       return res.status(404).json({ message: 'Adoptante no encontrado' })
     }
+
+    const { id: userId, tipo } = req.usuario!
+    const esElDuenio = tipo === 'Adoptante' && id === userId
+    const esAdmin = tipo === 'Admin'
+
+    // Regla de negocio: un Publicador accede a los datos de un Adoptante
+    // únicamente si ese adoptante le mandó una solicitud por alguna de SUS
+    // mascotas. El vínculo es lo que habilita el acceso al contacto (teléfono,
+    // dirección): sin solicitud de por medio, no hay motivo para verlo.
+    //
+    // Se resuelve con count() y no con find(): solo interesa si existe al
+    // menos una, no cuáles son.
+    let esPublicadorConSolicitud = false
+    if (tipo === 'Publicador') {
+      const solicitudes = await orm.em.count(Solicitud, {
+        adoptante: id,
+        mascota: { publicador: userId },
+      })
+      esPublicadorConSolicitud = solicitudes > 0
+    }
+
+    if (!esElDuenio && !esAdmin && !esPublicadorConSolicitud) {
+      return res.status(403).json({ message: 'No tenés acceso a los datos de este adoptante' })
+    }
+
     res.status(200).json({ message: 'Adoptante encontrado', data: adoptante })
   } catch (error: any) {
     console.error(error)
@@ -100,6 +124,18 @@ async function update(req: Request, res: Response) {
       return res.status(404).json({ message: 'Adoptante no encontrado' })
     }
 
+    // Solo puede editar esta cuenta su propio dueño, o un Admin moderando.
+    // Acá el id del recurso ES el id del usuario, porque la cuenta y la
+    // persona son lo mismo (a diferencia de una Mascota, donde el dueño está
+    // en otro campo).
+    const { id: userId, tipo } = req.usuario!
+    const esElDuenio = tipo === 'Adoptante' && id === userId
+    const esAdmin = tipo === 'Admin'
+
+    if (!esElDuenio && !esAdmin) {
+      return res.status(403).json({ message: 'No tenés permiso para editar esta cuenta' })
+    }
+
     // idExcluir: id evita que choque contra sí mismo si no cambió su
     // propio nombreUsuario/email.
     await assertUnico(
@@ -135,6 +171,15 @@ async function remove(req: Request, res: Response) {
     const adoptante = await orm.em.findOne(Adoptante, { id })
     if (!adoptante) {
       return res.status(404).json({ message: 'Adoptante no encontrado' })
+    }
+
+    // Mismo criterio que en update: el dueño de la cuenta, o un Admin.
+    const { id: userId, tipo } = req.usuario!
+    const esElDuenio = tipo === 'Adoptante' && id === userId
+    const esAdmin = tipo === 'Admin'
+
+    if (!esElDuenio && !esAdmin) {
+      return res.status(403).json({ message: 'No tenés permiso para eliminar esta cuenta' })
     }
     orm.em.remove(adoptante)
     await orm.em.flush()
