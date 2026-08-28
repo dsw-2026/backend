@@ -42,4 +42,37 @@ async function login(req: Request, res: Response) {
   }
 }
 
-export { login }
+// Devuelve los datos completos del usuario dueño del token 
+//
+// Por qué hace falta, si el token ya trae el id: porque el token trae SOLO
+// id y tipo . No trae el nombre, ni el email, ni la foto de perfil.
+//  Cuando alguien recarga la página, el frontend se reinicia y lo único que sobrevive 
+// es el token guardado: sin esta ruta no tendría con qué llenar el header ni la pantalla de perfil.
+//
+// El valor de seguridad está en de dónde sale el id. Acá se usa
+// req.usuario!.id, que viene del token FIRMADO por el backend, no de un
+// parámetro de la URL que el usuario podría cambiar a mano. Por eso esta es
+// la ruta correcta para que alguien edite su propia cuenta: el id lo pone el
+// sistema, no el navegador.
+async function obtenerPerfil(req: Request, res: Response) {
+  try {
+
+    const usuario = await orm.em.findOne(Usuario, { id: req.usuario!.id }, { populate: ['localidad'] })
+ 
+    // Caso raro pero posible: el token es válido y está bien firmado, pero la
+    // cuenta ya no existe (la borró un Admin, o el propio usuario). El token
+    // sigue vivo hasta que expire, así que hay que contemplarlo.
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado' })
+    }
+ 
+    // La contraseña no viaja: está marcada como hidden:true en la entidad
+    // Usuario, así que MikroORM no la incluye al serializar a JSON.
+    res.status(200).json({ message: 'Perfil obtenido', data: usuario })
+  } catch (error: any) {
+    console.error(error)
+    res.status(500).json({ message: 'Error al obtener el perfil' })
+  }
+}
+ 
+export { login, obtenerPerfil }
