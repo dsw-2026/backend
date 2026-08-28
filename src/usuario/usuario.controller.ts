@@ -4,6 +4,10 @@ import { orm } from '../shared/db/orm.js'
 import { Usuario } from './usuario.entity.js'
 import { removeNullish } from '../shared/utils/removeNullish.js'
 
+// las funciones que si aplican son findAll, findOne y verificar. Las demás no aplican porque usuario es una entidad abstracta 
+// y no se puede crear ni eliminar directamente. 
+
+
 // Del body recibido, solo conservamos los campos permitidos para Usuario.
 function sanitizeUsuarioInput(req: Request, res: Response, next: NextFunction) {
   req.body.sanitizedInput = {
