@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import { wrap } from '@mikro-orm/core'
 import { orm } from '../shared/db/orm.js'
 import { Usuario } from '../usuario/usuario.entity.js'
 
@@ -68,7 +69,15 @@ async function obtenerPerfil(req: Request, res: Response) {
  
     // La contraseña no viaja: está marcada como hidden:true en la entidad
     // Usuario, así que MikroORM no la incluye al serializar a JSON.
-    res.status(200).json({ message: 'Perfil obtenido', data: usuario })
+    //
+    // tipoUsuario se agrega a mano: la columna discriminadora no está
+    // declarada como @Property, así que no se serializa sola. Sin ella el
+    // frontend no sabe si tiene enfrente a un Publicador, un Adoptante o un
+    // Admin. Se usa constructor.name, la misma fuente que el token de login.
+    res.status(200).json({
+      message: 'Perfil obtenido',
+      data: { ...wrap(usuario).toJSON(), tipoUsuario: usuario.constructor.name },
+    })
   } catch (error: any) {
     console.error(error)
     res.status(500).json({ message: 'Error al obtener el perfil' })

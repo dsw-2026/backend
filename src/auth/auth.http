@@ -37,3 +37,17 @@ Content-Type: application/json
   "email": "noexiste@example.com",
   "contrasena": "cualquiera"
 }
+
+### Login como Admin — guarda la respuesta para reusar el token
+# @name loginAdmin
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "fluffy@email.com",
+  "contrasena": "123S"
+}
+
+### Perfil propio — usa el token del login de arriba
+GET http://localhost:3000/api/auth/me
+Authorization: Bearer {{loginAdmin.response.body.data.token}}
