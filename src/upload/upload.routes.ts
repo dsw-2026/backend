@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { middlewareSubida, subirImagen } from './upload.controller.js'
+import { verificarToken } from '../auth/auth.middleware.js'
 
 export const uploadRouter = Router()
 
-uploadRouter.post('/', middlewareSubida, subirImagen)
+uploadRouter.post('/', verificarToken, middlewareSubida, subirImagen)
