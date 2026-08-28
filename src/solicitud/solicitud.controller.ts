@@ -43,6 +43,11 @@ async function findAll(req: Request, res: Response) {
       filtro.adoptante = id // Si el usuario es Adoptante, solo puede ver solicitudes donde él mismo es el adoptante
     } else if (tipo === 'Publicador') {
       filtro.mascota = { publicador: id } // Si es Publicador, solo puede ver solicitudes de mascotas que él publicó
+    } else if (tipo === 'Admin') {
+      // El Admin ve TODAS las solicitudes: no se le agrega ningún filtro de
+      // pertenencia, solo queda el de estado si vino por query. Es acceso de
+      // supervisión y es de SOLO LECTURA: no puede aprobar, rechazar ni
+      // eliminar
     } else {
       // Cualquier tipo inesperado no ve nada, en vez de heredar
       // silenciosamente un filtro vacío (= ver todo).
@@ -71,8 +76,9 @@ async function findOne(req: Request, res: Response) {
     const { id: userId, tipo } = req.usuario! // la propiedad id del objeto req.usuario se guarda en una variable llamada userId
     const esElAdoptante = tipo === 'Adoptante' && solicitud.adoptante.id === userId
     const esElPublicador = tipo === 'Publicador' && solicitud.mascota.publicador.id === userId
+    const esAdmin = tipo === 'Admin' // acceso de supervisión, solo lectura
 
-    if (!esElAdoptante && !esElPublicador) {
+    if (!esElAdoptante && !esElPublicador && !esAdmin) {
       return res.status(403).json({ message: 'No tenés acceso a esta solicitud' })
     }
 
@@ -239,6 +245,7 @@ async function remove(req: Request, res: Response) {
 
     // Solo puede eliminarla: el adoptante que la creó, o el publicador
     // dueño de la mascota involucrada. Nadie más, aunque esté logueado.
+    
     const { id: userId, tipo } = req.usuario!
     const esElAdoptante = tipo === 'Adoptante' && solicitud.adoptante.id === userId
     const esElPublicador = tipo === 'Publicador' && solicitud.mascota.publicador.id === userId

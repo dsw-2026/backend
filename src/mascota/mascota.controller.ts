@@ -121,8 +121,17 @@ async function update(req: Request, res: Response) {
       return res.status(404).json({ message: 'Mascota no encontrada' })
     }
 
+    // El permiso se arma en forma POSITIVA (quién sí puede) en vez de
+    // enumerar motivos de bloqueo unidos por ||. Con la forma negativa,
+    // el cortocircuito del || corta en la primera condición verdadera:
+    // si mañana se suma otro rol habilitado, la excepción que se agregue
+    // en la segunda condición nunca llega a evaluarse y queda muerta,
+    // sin dar error. Así, en cambio, sumar un rol es sumar una variable.
     const { id: userId, tipo } = req.usuario!
-    if (tipo !== 'Publicador' || mascota.publicador.id !== userId) {
+    const esElPublicador = tipo === 'Publicador' && mascota.publicador.id === userId
+    const esAdmin = tipo === 'Admin'
+
+    if (!esElPublicador && !esAdmin) {
       return res.status(403).json({ message: 'No tenés permiso para editar esta mascota' })
     }
 
@@ -146,8 +155,12 @@ async function remove(req: Request, res: Response) {
       return res.status(404).json({ message: 'Mascota no encontrada' })
     }
 
+    // Forma positiva, mismo criterio que en update (ver comentario allá).
     const { id: userId, tipo } = req.usuario!
-    if (tipo !== 'Publicador' || mascota.publicador.id !== userId) {
+    const esElPublicador = tipo === 'Publicador' && mascota.publicador.id === userId
+    const esAdmin = tipo === 'Admin'
+
+    if (!esElPublicador && !esAdmin) {
       return res.status(403).json({ message: 'No tenés permiso para eliminar esta mascota' })
     }
 

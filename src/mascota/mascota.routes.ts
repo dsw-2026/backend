@@ -9,8 +9,13 @@ export const mascotaRouter = Router()
 mascotaRouter.get('/', findAll)
 mascotaRouter.get('/:id', findOne)
 
-// Escritura: solo Publicador autenticado
+// Alta: solo Publicador. 
 mascotaRouter.post('/', verificarToken, verificarTipo('Publicador'), sanitizeMascotaInput, create)
-mascotaRouter.put('/:id', verificarToken, verificarTipo('Publicador'), sanitizeMascotaInput, update)
-mascotaRouter.patch('/:id', verificarToken, verificarTipo('Publicador'), sanitizeMascotaInput, update)
-mascotaRouter.delete('/:id', verificarToken, verificarTipo('Publicador'), remove)
+
+// Edición y baja: el Publicador dueño, o un Admin (moderación de contenido
+// inapropiado). Que el Publicador sea el DUEÑO de esta mascota puntual se
+// valida adentro del controller, porque recién se sabe después de traerla
+// de la base.
+mascotaRouter.put('/:id', verificarToken, verificarTipo('Publicador', 'Admin'), sanitizeMascotaInput, update)
+mascotaRouter.patch('/:id', verificarToken, verificarTipo('Publicador', 'Admin'), sanitizeMascotaInput, update)
+mascotaRouter.delete('/:id', verificarToken, verificarTipo('Publicador', 'Admin'), remove)
