@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken'
 // Define la forma que tiene el contenido (payload) del JWT una vez decodificado
 export interface TokenPayload {
   id: number
-  tipo: string // 'Publicador' | 'Adoptante'
+  tipo: string // 'Publicador' | 'Adoptante' | 'Admin'
 }
 // "agrega" esa propiedad al tipo Request de forma global
 declare global {
@@ -18,16 +18,15 @@ declare global {
 }
 
 function verificarToken(req: Request, res: Response, next: NextFunction) {
-  // El estándar es mandar el token como "Authorization: Bearer <token>"
-  // El header Authorization lo crea el frontend, en el momento de armar cada petición HTTP hacia una ruta protegida, 
-  // usando el token que guardó después del login
-  const authHeader = req.headers.authorization
+  // El token viaja en una cookie httpOnly llamada 'auth.token', puesta por
+  // el backend en el login. Es más seguro que el header Authorization,
+  // porque el JavaScript del navegador no puede leer una cookie httpOnly,
+  // lo que protege el token contra robo por ataques XSS.
+  const token = req.cookies?.['auth.token']
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!token) {
     return res.status(401).json({ message: 'Token no proporcionado' })
   }
-
-  const token = authHeader.split(' ')[1]
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET as string) as TokenPayload
@@ -41,7 +40,7 @@ function verificarToken(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-// Middleware opcional para restringir por tipo de usuario (Publicador/Adoptante).
+// Middleware opcional para restringir por tipo de usuario (Publicador/Adoptante/Admin).
 // Se usa DESPUÉS de verificarToken, porque necesita req.usuario ya seteado.
 function verificarTipo(...tiposPermitidos: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {

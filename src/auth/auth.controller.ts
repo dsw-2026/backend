@@ -5,6 +5,7 @@ import { wrap } from '@mikro-orm/core'
 import { orm } from '../shared/db/orm.js'
 import { Usuario } from '../usuario/usuario.entity.js'
 
+
 async function login(req: Request, res: Response) {
   try {
     const { email, contrasena } = req.body
@@ -32,10 +33,10 @@ async function login(req: Request, res: Response) {
       process.env.JWT_SECRET as string,
       { expiresIn: '1d' }
     )
-
+    res.cookie('auth.token', token, {httpOnly:true}) //agregado
     res.status(200).json({
       message: 'Login exitoso',
-      data: { token, id: usuario.id, nombreUsuario: usuario.nombreUsuario },
+      data: {id: usuario.id, nombreUsuario: usuario.nombreUsuario }, //quite el token de aca
     })
   } catch (error: any) {
     console.error(error)

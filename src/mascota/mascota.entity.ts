@@ -4,6 +4,7 @@ import { BaseEntity } from '../shared/db/base.entity.js'
 import { Especie } from '../especie/especie.entity.js'
 import { Publicador } from '../publicador/publicador.entity.js'
 import { Caracteristica } from '../caracteristica/caracteristica.entity.js'
+import { EstadoMascota } from './estadoMascota.js'
 
 export const Sexo = { MACHO: 'MACHO', HEMBRA: 'HEMBRA' } as const
 export type Sexo = (typeof Sexo)[keyof typeof Sexo]
@@ -11,13 +12,10 @@ export type Sexo = (typeof Sexo)[keyof typeof Sexo]
 export const UnidadEdad = { MESES: 'MESES', ANIOS: 'ANIOS' } as const
 export type UnidadEdad = (typeof UnidadEdad)[keyof typeof UnidadEdad]
 
-export const EstadoMascota = {
-  DISPONIBLE: 'DISPONIBLE',
-  EN_PROCESO: 'EN_PROCESO',
-  ADOPTADA: 'ADOPTADA',
-  NO_DISPONIBLE: 'NO_DISPONIBLE',
-} as const
-export type EstadoMascota = (typeof EstadoMascota)[keyof typeof EstadoMascota]
+// Re-exportamos EstadoMascota (definido en su propio archivo, sin
+// decoradores) para que el resto del proyecto lo siga importando desde
+// acá como antes, sin tener que cambiar todos los imports existentes.
+export { EstadoMascota }
 
 @Entity()
 export class Mascota extends BaseEntity {

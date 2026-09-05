@@ -2,6 +2,7 @@ import 'reflect-metadata'
 import express from 'express'
 import cors from 'cors'
 import path from 'node:path'
+import cookieParser from 'cookie-parser'
 import { RequestContext } from '@mikro-orm/core'
 import { orm, syncSchema } from './shared/db/orm.js'
 import { especieRouter } from './especie/especie.routes.js'
@@ -16,7 +17,6 @@ import { uploadRouter } from './upload/upload.routes.js'
 import { authRouter } from './auth/auth.routes.js'
 import 'dotenv/config'
 
-
 export const app = express()
 
 // Habilita al frontend (otro origin: puerto distinto) a consultar esta API.
@@ -26,6 +26,11 @@ export const app = express()
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173' }))
 
 app.use(express.json())
+
+// Lee las cookies que llegan en cada petición y las deja disponibles en
+// req.cookies. Necesario para poder leer el token de autenticación, que
+// ahora viaja en una cookie httpOnly en vez del header Authorization.
+app.use(cookieParser())
 
 // Sirve la carpeta uploads/ (raíz del proyecto) como archivos estáticos:
 // una imagen guardada como uploads/xxxx.jpg queda accesible en

@@ -4,6 +4,7 @@ import { Solicitud, EstadoSolicitud } from './solicitud.entity.js'
 import { Mascota, EstadoMascota } from '../mascota/mascota.entity.js'
 import { Adoptante } from '../adoptante/adoptante.entity.js'
 import { removeNullish } from '../shared/utils/removeNullish.js'
+import { mascotaDisponibleParaSolicitud } from './mascotaDisponible.js'
 
 // Se incluye mascota.especie y mascota.caracteristica 
 // para que la respuesta traiga la información completa de la mascota,
@@ -33,32 +34,19 @@ function sanitizeSolicitudInput(req: Request, res: Response, next: NextFunction)
   next()
 }
 
-// Regla de negocio central del Epic A: una mascota solo puede recibir
-// una nueva solicitud si está DISPONIBLE. Separada como función propia
-// (en vez de dejarla inline en el if) para poder testearla de forma
-// aislada, sin necesitar una petición HTTP real ni la base de datos.
-function mascotaDisponibleParaSolicitud(mascota: Mascota): boolean {
-  return mascota.estado === EstadoMascota.DISPONIBLE
-}
-
 async function findAll(req: Request, res: Response) {
   try {
-    const { id, tipo } = req.usuario! // se extrae id y tipo del usuario logueado
+    const { id, tipo } = req.usuario!
     const filtro: any = {}
     if (req.query.estado) filtro.estado = req.query.estado
 
     if (tipo === 'Adoptante') {
-      filtro.adoptante = id // Si el usuario es Adoptante, solo puede ver solicitudes donde él mismo es el adoptante
+      filtro.adoptante = id
     } else if (tipo === 'Publicador') {
-      filtro.mascota = { publicador: id } // Si es Publicador, solo puede ver solicitudes de mascotas que él publicó
+      filtro.mascota = { publicador: id }
     } else if (tipo === 'Admin') {
-      // El Admin ve TODAS las solicitudes: no se le agrega ningún filtro de
-      // pertenencia, solo queda el de estado si vino por query. Es acceso de
-      // supervisión y es de SOLO LECTURA: no puede aprobar, rechazar ni
-      // eliminar
+      // El Admin ve TODAS las solicitudes, sin filtro de pertenencia.
     } else {
-      // Cualquier tipo inesperado no ve nada, en vez de heredar
-      // silenciosamente un filtro vacío (= ver todo).
       return res.status(403).json({ message: 'Rol no autorizado' })
     }
 
@@ -78,13 +66,10 @@ async function findOne(req: Request, res: Response) {
       return res.status(404).json({ message: 'Solicitud no encontrada' })
     }
 
-    // solo puede ver la solicitud el adoptante que la hizo
-    // o el publicador dueño de la mascota involucrada. Cualquier otro
-    // caso (otro adoptante, otro publicador, tipo inesperado) queda afuera.
-    const { id: userId, tipo } = req.usuario! // la propiedad id del objeto req.usuario se guarda en una variable llamada userId
+    const { id: userId, tipo } = req.usuario!
     const esElAdoptante = tipo === 'Adoptante' && solicitud.adoptante.id === userId
     const esElPublicador = tipo === 'Publicador' && solicitud.mascota.publicador.id === userId
-    const esAdmin = tipo === 'Admin' // acceso de supervisión, solo lectura
+    const esAdmin = tipo === 'Admin'
 
     if (!esElAdoptante && !esElPublicador && !esAdmin) {
       return res.status(403).json({ message: 'No tenés acceso a esta solicitud' })
@@ -97,23 +82,16 @@ async function findOne(req: Request, res: Response) {
   }
 }
 
-// EPIC A: "Solicitar adopción". No es un CRUD simple: valida una regla de
-// negocio (mascota disponible), calcula la compatibilidad, y permite
-// MÚLTIPLES solicitudes por mascota mientras siga disponible (no se
-// bloquea con la primera solicitud), para que el nivel de compatibilidad
-// tenga sentido real al comparar candidatos en el Epic B.
 async function create(req: Request, res: Response) {
   try {
     const mascotaId = Number(req.body.sanitizedInput.mascota)
-    const adoptanteId = req.usuario!.id // se usa el id que llega en el token
+    const adoptanteId = req.usuario!.id
 
     const mascota = await orm.em.findOne(Mascota, { id: mascotaId }, { populate: ['caracteristica'] })
     if (!mascota) {
       return res.status(404).json({ message: 'Mascota no encontrada' })
     }
 
-    // Valida la regla de negocio: solo se pueden procesar adopciones de mascotas disponibles.
-    // 409 (Conflict): la petición es válida, pero el estado actual de la mascota lo impide.
     if (!mascotaDisponibleParaSolicitud(mascota)) {
       return res.status(409).json({ message: 'La mascota no está disponible para adopción' })
     }
@@ -123,10 +101,6 @@ async function create(req: Request, res: Response) {
       return res.status(404).json({ message: 'Adoptante no encontrado' })
     }
 
-    // Un mismo Adoptante puede solicitar varias mascotas distintas (eso
-    // sí está permitido, ver comentario arriba sobre múltiples
-    // solicitudes por mascota), pero no repetir la solicitud sobre la
-    // MISMA mascota dos veces.
     const solicitudExistente = await orm.em.findOne(Solicitud, { mascota: mascotaId, adoptante: adoptanteId })
     if (solicitudExistente) {
       return res.status(409).json({ message: 'Este adoptante ya tiene una solicitud registrada para esta mascota' })
@@ -153,11 +127,6 @@ async function create(req: Request, res: Response) {
   }
 }
 
-// EPIC B: "Revisar solicitudes". Aprobar una Solicitud tiene efectos que van
-// más allá de la propia Solicitud: la Mascota pasa a ADOPTADA (deja de poder
-// recibir nuevas solicitudes, ver Epic A) y todas las demás Solicitudes
-// PENDIENTE de esa misma Mascota se rechazan automáticamente, ya que una
-// Mascota solo puede ser adoptada una vez.
 async function aprobar(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -165,22 +134,15 @@ async function aprobar(req: Request, res: Response) {
     if (!solicitud) {
       return res.status(404).json({ message: 'Solicitud no encontrada' })
     }
-    // valida que la mascota le pertenezca al Publicador logueado
     if (solicitud.mascota.publicador.id !== req.usuario!.id) {
       return res.status(403).json({ message: 'Publicador no autorizado' })
     }
-    // Solo se puede aprobar una solicitud que todavía esté PENDIENTE: evita
-    // reabrir una decisión ya tomada (aprobar una ya RECHAZADA, o volver a
-    // aprobar una ya APROBADA).
     if (solicitud.estado !== EstadoSolicitud.PENDIENTE) {
       return res.status(409).json({ message: 'La solicitud ya fue evaluada' })
     }
 
     const mascota = solicitud.mascota
 
-    // Salvaguarda: si por alguna razón la mascota ya no está DISPONIBLE
-    // (por ejemplo, otra solicitud sobre ella se aprobó primero), no se
-    // permite aprobar esta también.
     if (!mascotaDisponibleParaSolicitud(mascota)) {
       return res.status(409).json({ message: 'La mascota ya no está disponible para adopción' })
     }
@@ -188,10 +150,6 @@ async function aprobar(req: Request, res: Response) {
     solicitud.estado = EstadoSolicitud.APROBADA
     mascota.estado = EstadoMascota.ADOPTADA
 
-    // Rechazo en cascada: el resto de las solicitudes PENDIENTE sobre la
-    // misma mascota (si las hubiera, ver comentario de "múltiples
-    // solicitudes" en create) dejan de tener sentido una vez que la mascota
-    // fue adoptada por otro adoptante.
     const otrasSolicitudesPendientes = await orm.em.find(Solicitud, {
       mascota: mascota.id,
       estado: EstadoSolicitud.PENDIENTE,
@@ -210,9 +168,6 @@ async function aprobar(req: Request, res: Response) {
   }
 }
 
-// Rechazar una Solicitud es un cambio de estado simple: no afecta a la
-// Mascota (sigue DISPONIBLE, sigue pudiendo recibir/tener otras solicitudes
-// PENDIENTE) ni a otras Solicitudes.
 async function rechazar(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -220,7 +175,6 @@ async function rechazar(req: Request, res: Response) {
     if (!solicitud) {
       return res.status(404).json({ message: 'Solicitud no encontrada' })
     }
-    // valida que la mascota le pertenezca al Publicador logueado
     if (solicitud.mascota.publicador.id !== req.usuario!.id) {
       return res.status(403).json({ message: 'Publicador no autorizado' })
     }
@@ -237,23 +191,14 @@ async function rechazar(req: Request, res: Response) {
   }
 }
 
-// No hay update genérico: el cambio de estado (aprobar/rechazar) es
-// responsabilidad del Epic B, que tiene efectos sobre la Mascota
-// relacionada, no una simple modificación de datos.
 async function remove(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
-    // Se populan mascota y adoptante: ambos hacen falta para validar
-    // pertenencia más abajo (publicador dueño de la mascota, o adoptante
-    // dueño de la solicitud).
     const solicitud = await orm.em.findOne(Solicitud, { id }, { populate: ['mascota', 'adoptante'] })
     if (!solicitud) {
       return res.status(404).json({ message: 'Solicitud no encontrada' })
     }
 
-    // Solo puede eliminarla: el adoptante que la creó, o el publicador
-    // dueño de la mascota involucrada. Nadie más, aunque esté logueado.
-    
     const { id: userId, tipo } = req.usuario!
     const esElAdoptante = tipo === 'Adoptante' && solicitud.adoptante.id === userId
     const esElPublicador = tipo === 'Publicador' && solicitud.mascota.publicador.id === userId
@@ -271,4 +216,4 @@ async function remove(req: Request, res: Response) {
   }
 }
 
-export { sanitizeSolicitudInput, findAll, findOne, create, aprobar, rechazar, remove, mascotaDisponibleParaSolicitud }
+export { sanitizeSolicitudInput, findAll, findOne, create, aprobar, rechazar, remove }
