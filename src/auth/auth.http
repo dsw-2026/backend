@@ -12,6 +12,7 @@ Content-Type: application/json
 }
 
 ### Login correcto
+# @name miLogin
 POST http://localhost:3000/api/auth/login
 Content-Type: application/json
 
@@ -50,4 +51,4 @@ Content-Type: application/json
 
 ### Perfil propio — usa el token del login de arriba
 GET http://localhost:3000/api/auth/me
-Authorization: Bearer {{loginAdmin.response.body.data.token}}
+Authorization: Bearer {{miLogin.response.body.data.token}}

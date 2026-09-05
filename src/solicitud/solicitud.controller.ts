@@ -33,6 +33,14 @@ function sanitizeSolicitudInput(req: Request, res: Response, next: NextFunction)
   next()
 }
 
+// Regla de negocio central del Epic A: una mascota solo puede recibir
+// una nueva solicitud si está DISPONIBLE. Separada como función propia
+// (en vez de dejarla inline en el if) para poder testearla de forma
+// aislada, sin necesitar una petición HTTP real ni la base de datos.
+function mascotaDisponibleParaSolicitud(mascota: Mascota): boolean {
+  return mascota.estado === EstadoMascota.DISPONIBLE
+}
+
 async function findAll(req: Request, res: Response) {
   try {
     const { id, tipo } = req.usuario! // se extrae id y tipo del usuario logueado
@@ -106,7 +114,7 @@ async function create(req: Request, res: Response) {
 
     // Valida la regla de negocio: solo se pueden procesar adopciones de mascotas disponibles.
     // 409 (Conflict): la petición es válida, pero el estado actual de la mascota lo impide.
-    if (mascota.estado !== EstadoMascota.DISPONIBLE) {
+    if (!mascotaDisponibleParaSolicitud(mascota)) {
       return res.status(409).json({ message: 'La mascota no está disponible para adopción' })
     }
 
@@ -173,7 +181,7 @@ async function aprobar(req: Request, res: Response) {
     // Salvaguarda: si por alguna razón la mascota ya no está DISPONIBLE
     // (por ejemplo, otra solicitud sobre ella se aprobó primero), no se
     // permite aprobar esta también.
-    if (mascota.estado !== EstadoMascota.DISPONIBLE) {
+    if (!mascotaDisponibleParaSolicitud(mascota)) {
       return res.status(409).json({ message: 'La mascota ya no está disponible para adopción' })
     }
 
@@ -263,4 +271,4 @@ async function remove(req: Request, res: Response) {
   }
 }
 
-export { sanitizeSolicitudInput, findAll, findOne, create, aprobar, rechazar, remove }
+export { sanitizeSolicitudInput, findAll, findOne, create, aprobar, rechazar, remove, mascotaDisponibleParaSolicitud }
