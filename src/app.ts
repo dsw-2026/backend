@@ -21,10 +21,12 @@ export const app = express()
 
 // Habilita al frontend (otro origin: puerto distinto) a consultar esta API.
 // Sin esto, el navegador bloquea toda respuesta del backend aunque el
-// pedido haya llegado bien — CORS_ORIGIN se puede sobreescribir por .env
+// pedido haya llegado bien - CORS_ORIGIN se puede sobreescribir por .env
 // si en el futuro el frontend corre en otra URL (ej: al deployar).
-app.use(cors({ origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173' }))
-
+app.use(cors({
+  origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
+  credentials: true,
+}))
 app.use(express.json())
 
 // Lee las cookies que llegan en cada petición y las deja disponibles en
