@@ -54,6 +54,9 @@ async function findAll(req: Request, res: Response) {
     if (req.query.especie) {
       filtro.especie = Number(req.query.especie)
     }
+    if (req.query.publicador) {
+      filtro.publicador = Number(req.query.publicador)
+    }
     const mascotas = await orm.em.find(Mascota, filtro, { populate: POPULATE })
     res.status(200).json({ message: 'Mascotas encontradas', data: mascotas })
   } catch (error: any) {
