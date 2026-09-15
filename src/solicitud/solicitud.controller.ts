@@ -17,6 +17,7 @@ const POPULATE = [
   'adoptante',
   'adoptante.localidad',
   'adoptante.localidad.provincia',
+  'mascota.publicador'
 ] as const
 
 function sanitizeSolicitudInput(req: Request, res: Response, next: NextFunction) {
