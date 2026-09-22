@@ -15,7 +15,9 @@ import { localidadRouter } from './localidad/localidad.routes.js'
 import { solicitudRouter } from './solicitud/solicitud.routes.js'
 import { uploadRouter } from './upload/upload.routes.js'
 import { authRouter } from './auth/auth.routes.js'
+import { errorHandler } from './shared/middlewares/errorHandler.middlewares.js'
 import 'dotenv/config'
+
 
 export const app = express()
 
@@ -23,7 +25,10 @@ export const app = express()
 // Sin esto, el navegador bloquea toda respuesta del backend aunque el
 // pedido haya llegado bien — CORS_ORIGIN se puede sobreescribir por .env
 // si en el futuro el frontend corre en otra URL (ej: al deployar).
-app.use(cors({ origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173' }))
+app.use(cors({
+  origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
+  credentials: true, // ← agregado
+}))
 
 app.use(express.json())
 
@@ -64,6 +69,12 @@ app.use('/api/auth', authRouter)
 app.use((req, res) => {
   res.status(404).json({ message: 'Recurso no encontrado' })
 })
+
+app.use((req, res) => {
+  res.status(404).json({ message: 'Recurso no encontrado' })
+})
+
+app.use(errorHandler)   
 
 // Genera/actualiza el esquema de la base según las entidades (solo
 // apropiado en desarrollo, ver advertencia en orm.ts).
