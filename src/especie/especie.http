@@ -1,19 +1,47 @@
-### Obtener todas las especies
-GET http://localhost:3000/api/especies
+### Configuración de Variables locales
+@api = http://localhost:3000/api
 
-### Obtener una especie por id
-GET http://localhost:3000/api/especies/1
-
-### Crear una nueva especie
-POST http://localhost:3000/api/especies
+### ==========================================
+### PASO 1: INICIAR SESIÓN COMO ADMIN
+### (Ejecutá este primero para que se guarde la cookie de acceso)
+### ==========================================
+POST {{api}}/auth/login
 Content-Type: application/json
 
 {
-  "nombre": "Perro"
+  "email": "test_login@example.com",
+  "contrasena": "claveDePrueba123"
 }
 
-### Crear especie con campo extra (probar sanitización)
-POST http://localhost:3000/api/especies
+
+### ==========================================
+### PASO 2: PRUEBAS DEL MÓDULO DE ESPECIES
+### ==========================================
+
+### Obtener todas las especies (Acceso público)
+GET {{api}}/especies
+
+### Obtener una especie por id (Acceso público)
+GET {{api}}/especies/1
+
+### Crear una nueva especie VÁLIDA (Requiere Login)
+POST {{api}}/especies
+Content-Type: application/json
+
+{
+  "nombre": "Hurón"
+}
+
+### Crear especie INVÁLIDA (Probar el error 400 del DTO automático)
+POST {{api}}/especies
+Content-Type: application/json
+
+{
+  "nombre": ""
+}
+
+### Crear especie con campo extra (Probar sanitización automática del whitelist)
+POST {{api}}/especies
 Content-Type: application/json
 
 {
@@ -22,7 +50,7 @@ Content-Type: application/json
 }
 
 ### Modificar una especie existente
-PUT http://localhost:3000/api/especies/1
+PUT {{api}}/especies/1
 Content-Type: application/json
 
 {
@@ -30,7 +58,7 @@ Content-Type: application/json
 }
 
 ### Modificar parcialmente una especie
-PATCH http://localhost:3000/api/especies/1
+PATCH {{api}}/especies/1
 Content-Type: application/json
 
 {
@@ -38,7 +66,7 @@ Content-Type: application/json
 }
 
 ### Eliminar una especie
-DELETE http://localhost:3000/api/especies/3
+DELETE {{api}}/especies/3
 
-### Probar ruta inexistente (catch-all)
+### Probar ruta inexistente (Verificar Catch-All del errorHandler)
 GET http://localhost:3000/ruta-inventada

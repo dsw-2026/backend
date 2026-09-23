@@ -1,16 +1,18 @@
 import { Router } from 'express'
 import { verificarToken, verificarTipo } from '../auth/auth.middleware.js'
-import { sanitizeEspecieInput, findAll, findOne, create, update, remove } from './especie.controller.js'
+import { validateDto } from '../shared/middlewares/validate.middleware.js'
+import { EspecieDto } from './dto/especie.dto.js'
+import { especieController } from './especie.controller.js'
 
 export const especieRouter = Router()
 
-// Lectura pública: el catálogo alimenta los formularios de registro y el
-// buscador de mascotas, que se usan sin estar logueado.
-especieRouter.get('/', findAll)
-especieRouter.get('/:id', findOne)
+// Lectura pública: cualquiera puede ver el catálogo de especies.
+especieRouter.get('/', especieController.findAll)
+especieRouter.get('/:id', especieController.findOne)
 
-// Escritura: solo Admin. Mantener el catálogo es una de sus capacidades.
-especieRouter.post('/', verificarToken, verificarTipo('Admin'), sanitizeEspecieInput, create)
-especieRouter.put('/:id', verificarToken, verificarTipo('Admin'), sanitizeEspecieInput, update)
-especieRouter.patch('/:id', verificarToken, verificarTipo('Admin'), sanitizeEspecieInput, update)
-especieRouter.delete('/:id', verificarToken, verificarTipo('Admin'), remove)
+// Escritura: solo Admin. validateDto valida el body contra el DTO antes
+// de llegar al controller (reemplaza al viejo sanitizeInput).
+especieRouter.post('/', verificarToken, verificarTipo('Admin'), validateDto(EspecieDto), especieController.create)
+especieRouter.put('/:id', verificarToken, verificarTipo('Admin'), validateDto(EspecieDto), especieController.update)
+especieRouter.patch('/:id', verificarToken, verificarTipo('Admin'), validateDto(EspecieDto), especieController.update)
+especieRouter.delete('/:id', verificarToken, verificarTipo('Admin'), especieController.remove)

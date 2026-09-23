@@ -1,88 +1,37 @@
-import { Request, Response, NextFunction } from 'express'
-import { orm } from '../shared/db/orm.js'
-import { Especie } from './especie.entity.js'
-import { removeNullish } from '../shared/utils/removeNullish.js'
+import { Request, Response } from 'express'
+import { EspecieService } from './especie.service.js'
+import { ApiResponse } from '../shared/errors/api.response.js'
 
-// Del body recibido, solo conservamos los campos permitidos para Especie.
-// En este caso, únicamente "nombre".
-function sanitizeEspecieInput(req: Request, res: Response, next: NextFunction) {
-  req.body.sanitizedInput = {
-    nombre: req.body.nombre,
+export class EspecieController {
+  private service = new EspecieService()
+
+  findAll = async (req: Request, res: Response) => {
+    const especies = await this.service.findAll()
+    return res.status(200).json(new ApiResponse('Especies encontradas', especies))
   }
-  removeNullish(req.body.sanitizedInput)
-  next()
-}
 
-// Devuelve todas las especies.
-async function findAll(req: Request, res: Response) {
-  try {
-    const especies = await orm.em.find(Especie, {})
-    res.status(200).json({ message: 'Especies encontradas', data: especies })
-  } catch (error: any) {
-    console.error(error)
-    res.status(500).json({ message: 'Error al buscar especies' })
-  }
-}
-
-// Crea una nueva especie y persiste los cambios en la base de datos.
-async function create(req: Request, res: Response) {
-  try {
-    const especie = orm.em.create(Especie, req.body.sanitizedInput)
-    await orm.em.flush()
-    res.status(201).json({ message: 'Especie creada', data: especie })
-  } catch (error: any) {
-    console.error(error)
-    res.status(500).json({ message: 'Error al crear la especie' })
-  }
-}
-
-// Busca una especie por su ID. Devuelve 404 si no existe.
-async function findOne(req: Request, res: Response) {
-  try {
+  findOne = async (req: Request, res: Response) => {
     const id = Number(req.params.id)
-    const especie = await orm.em.findOne(Especie, { id })
-    if (!especie) {
-      return res.status(404).json({ message: 'Especie no encontrada' })
-    }
-    res.status(200).json({ message: 'Especie encontrada', data: especie })
-  } catch (error: any) {
-    console.error(error)
-    res.status(500).json({ message: 'Error al buscar la especie' })
+    const especie = await this.service.findOne(id)
+    return res.status(200).json(new ApiResponse('Especie encontrada', especie))
+  }
+
+  create = async (req: Request, res: Response) => {
+    const especie = await this.service.create(req.body.sanitizedInput)
+    return res.status(201).json(new ApiResponse('Especie creada', especie))
+  }
+
+  update = async (req: Request, res: Response) => {
+    const id = Number(req.params.id)
+    const especie = await this.service.update(id, req.body.sanitizedInput)
+    return res.status(200).json(new ApiResponse('Especie actualizada', especie))
+  }
+
+  remove = async (req: Request, res: Response) => {
+    const id = Number(req.params.id)
+    await this.service.remove(id)
+    return res.status(200).json(new ApiResponse('Especie eliminada exitosamente', null))
   }
 }
 
-// Se verifica que la especie exista antes de modificarla.
-async function update(req: Request, res: Response) {
-  try {
-    const id = Number(req.params.id)
-    const especie = await orm.em.findOne(Especie, { id })
-    if (!especie) {
-      return res.status(404).json({ message: 'Especie no encontrada' })
-    }
-    orm.em.assign(especie, req.body.sanitizedInput)
-    await orm.em.flush()
-    res.status(200).json({ message: 'Especie actualizada', data: especie })
-  } catch (error: any) {
-    console.error(error)
-    res.status(500).json({ message: 'Error al actualizar la especie' })
-  }
-}
-
-// Se verifica que la especie exista antes de eliminarla.
-async function remove(req: Request, res: Response) {
-  try {
-    const id = Number(req.params.id)
-    const especie = await orm.em.findOne(Especie, { id })
-    if (!especie) {
-      return res.status(404).json({ message: 'Especie no encontrada' })
-    }
-    orm.em.remove(especie)
-    await orm.em.flush()
-    res.status(200).json({ message: 'Especie eliminada exitosamente' })
-  } catch (error: any) {
-    console.error(error)
-    res.status(500).json({ message: 'Error al eliminar la especie' })
-  }
-}
-// Exportamos el middleware y las funciones del controller.
-export { sanitizeEspecieInput, findAll, findOne, create, update, remove }
+export const especieController = new EspecieController()

@@ -16,5 +16,4 @@ export function mapDbError(error: unknown): never {
     throw new DatabaseError('Falta un dato obligatorio')
   }
   throw new DatabaseError('Error en la base de datos')
-
 }
