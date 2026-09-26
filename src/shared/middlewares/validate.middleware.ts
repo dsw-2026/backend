@@ -1,19 +1,24 @@
 import type { Request, Response, NextFunction } from 'express'
-import { plainToInstance } from 'class-transformer'
-import { validate } from 'class-validator'
+import type { ZodType } from 'zod'
 import { ValidationError } from '../errors/app.error.js'
 
-export function validateDto(DtoClass: any) {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    const dtoInstance = plainToInstance(DtoClass, req.body)
-    const errores = await validate(dtoInstance, {
-      whitelist: true, 
-    })
-    if (errores.length > 0) {
-      const detalles = errores.flatMap((e) => Object.values(e.constraints ?? {}))
-      throw new ValidationError('Datos de entrada inválidos', detalles)
+// Middleware fábrica: recibe un schema de Zod y devuelve un middleware que
+// valida el req.body contra ese schema.
+// - safeParse valida sin lanzar excepción: devuelve { success, data } o { success, error }.
+// - Si falla, lanza un ValidationError (que el errorHandler convierte en 400)
+//   con la lista de campos que no cumplieron.
+// - Si pasa, guarda los datos ya validados (y con el tipo correcto) en
+//   req.body.validated para que el controller los use.
+export function validate(schema: ZodType) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const result = schema.safeParse(req.body)
+
+    if (!result.success) {
+      const details = result.error.issues.map((issue) => issue.message)
+      throw new ValidationError('Invalid input data', details)
     }
-    req.body.sanitizedInput = dtoInstance
+
+    req.body.validated = result.data
     next()
   }
 }

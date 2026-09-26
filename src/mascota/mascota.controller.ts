@@ -3,12 +3,10 @@ import { orm } from '../shared/db/orm.js'
 import { Mascota } from './mascota.entity.js'
 import { Caracteristica } from '../caracteristica/caracteristica.entity.js'
 import { Publicador } from '../publicador/publicador.entity.js'
-import { Especie } from '../especie/especie.entity.js'
+import { Species } from '../species/species.entity.js'
 import { removeNullish } from '../shared/utils/removeNullish.js'
 import { Solicitud } from '../solicitud/solicitud.entity.js'
 
-// Separa el body en dos objetos: campos de Mascota y de Caracteristica.
-// Se crean juntas en la misma petición (ver create más abajo).
 function sanitizeMascotaInput(req: Request, res: Response, next: NextFunction) {
   req.body.sanitizedInput = {
     nombre: req.body.nombre,
@@ -17,8 +15,7 @@ function sanitizeMascotaInput(req: Request, res: Response, next: NextFunction) {
     unidadEdad: req.body.unidadEdad,
     estado: req.body.estado,
     foto: req.body.foto,
-    especie: req.body.especie,
-    // publicador ya no se toma del body: sale de req.usuario!.id en create
+    species: req.body.species,
   }
 
   req.body.sanitizedCaracteristica = {
@@ -38,21 +35,17 @@ function sanitizeMascotaInput(req: Request, res: Response, next: NextFunction) {
 
   next()
 }
-// Relaciones que se cargan junto con la Mascota.
-const POPULATE = ['especie', 'publicador', 'caracteristica'] as const
 
-// Permite filtrar las mascotas por estado (?estado=) y/o por especie (?especie=).
-// Sin filtros, trae todas. El listado de mascotas disponibles para adoptar
-// (filtrado por especie) es el mismo endpoint, solo cambia el query param.
-// Lectura pública: no requiere autenticación (listado de mascotas en adopción).
+const POPULATE = ['species', 'publicador', 'caracteristica'] as const
+
 async function findAll(req: Request, res: Response) {
   try {
     const filtro: any = {}
     if (req.query.estado) {
       filtro.estado = req.query.estado
     }
-    if (req.query.especie) {
-      filtro.especie = Number(req.query.especie)
+    if (req.query.species) {
+      filtro.species = Number(req.query.species)
     }
     const mascotas = await orm.em.find(Mascota, filtro, { populate: POPULATE })
     res.status(200).json({ message: 'Mascotas encontradas', data: mascotas })
@@ -62,8 +55,6 @@ async function findAll(req: Request, res: Response) {
   }
 }
 
-
-// Lectura pública: no requiere autenticación (ficha de una mascota puntual).
 async function findOne(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -78,8 +69,6 @@ async function findOne(req: Request, res: Response) {
   }
 }
 
-// Crea y persiste la Mascota y su Caracteristica en la misma operación.
-// (no existe una Caracteristica sin su mascota).
 async function create(req: Request, res: Response) {
   try {
     const { id: publicadorId, tipo } = req.usuario!
@@ -89,9 +78,9 @@ async function create(req: Request, res: Response) {
       return res.status(404).json({ message: 'Publicador no encontrado' })
     }
 
-    const especieId = Number(req.body.sanitizedInput.especie)
-    const especie = await orm.em.findOne(Especie, { id: especieId })
-    if (!especie) {
+    const speciesId = Number(req.body.sanitizedInput.species)
+    const species = await orm.em.findOne(Species, { id: speciesId })
+    if (!species) {
       return res.status(404).json({ message: 'Especie no encontrada' })
     }
 
@@ -99,7 +88,7 @@ async function create(req: Request, res: Response) {
     const mascota = orm.em.create(Mascota, {
       ...req.body.sanitizedInput,
       publicador,
-      especie,
+      species,
       caracteristica,
     })
 
@@ -112,7 +101,6 @@ async function create(req: Request, res: Response) {
   }
 }
 
-// Actualiza tanto los datos de Mascota como los de su Caracteristica.
 async function update(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -121,12 +109,6 @@ async function update(req: Request, res: Response) {
       return res.status(404).json({ message: 'Mascota no encontrada' })
     }
 
-    // El permiso se arma en forma POSITIVA (quién sí puede) en vez de
-    // enumerar motivos de bloqueo unidos por ||. Con la forma negativa,
-    // el cortocircuito del || corta en la primera condición verdadera:
-    // si mañana se suma otro rol habilitado, la excepción que se agregue
-    // en la segunda condición nunca llega a evaluarse y queda muerta,
-    // sin dar error. Así, en cambio, sumar un rol es sumar una variable.
     const { id: userId, tipo } = req.usuario!
     const esElPublicador = tipo === 'Publicador' && mascota.publicador.id === userId
     const esAdmin = tipo === 'Admin'
@@ -145,8 +127,6 @@ async function update(req: Request, res: Response) {
   }
 }
 
-// La Caracteristica se elimina automáticamente junto con la Mascota
-// mediante la cascada configurada en la relación.
 async function remove(req: Request, res: Response) {
   try {
     const id = Number(req.params.id)
@@ -155,7 +135,6 @@ async function remove(req: Request, res: Response) {
       return res.status(404).json({ message: 'Mascota no encontrada' })
     }
 
-    // Forma positiva, mismo criterio que en update (ver comentario allá).
     const { id: userId, tipo } = req.usuario!
     const esElPublicador = tipo === 'Publicador' && mascota.publicador.id === userId
     const esAdmin = tipo === 'Admin'
@@ -164,9 +143,6 @@ async function remove(req: Request, res: Response) {
       return res.status(403).json({ message: 'No tenés permiso para eliminar esta mascota' })
     }
 
-    // Chequeo explícito ANTES de intentar el delete: si hay solicitudes
-    // asociadas, se bloquea con un 409 claro en vez de dejar que la FK
-    // constraint tire un error crudo de MySQL (500 genérico).
     const tieneSolicitudes = await orm.em.count(Solicitud, { mascota: id })
     if (tieneSolicitudes > 0) {
       return res.status(409).json({

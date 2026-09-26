@@ -12,7 +12,7 @@ import { mascotaDisponibleParaSolicitud } from './mascotaDisponible.js'
 
 const POPULATE = [
   'mascota',
-  'mascota.especie',
+  'mascota.species',
   'mascota.caracteristica',
   'adoptante',
   'adoptante.localidad',
