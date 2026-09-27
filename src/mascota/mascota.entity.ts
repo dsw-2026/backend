@@ -3,7 +3,7 @@ import { Cascade, Rel } from '@mikro-orm/core'
 import { BaseEntity } from '../shared/db/base.entity.js'
 import { Species } from '../species/species.entity.js'
 import { Publicador } from '../publicador/publicador.entity.js'
-import { Caracteristica } from '../caracteristica/caracteristica.entity.js'
+import { Characteristic } from '../characteristic/characteristic.entity.js'
 import { EstadoMascota } from './estadoMascota.js'
 
 export const Sexo = { MACHO: 'MACHO', HEMBRA: 'HEMBRA' } as const
@@ -43,6 +43,6 @@ export class Mascota extends BaseEntity {
   @ManyToOne(() => Publicador, { nullable: false })
   publicador!: Rel<Publicador>
 
-  @OneToOne(() => Caracteristica, { nullable: false, cascade: [Cascade.ALL] })
-  caracteristica!: Rel<Caracteristica>
+  @OneToOne(() => Characteristic, { nullable: false, cascade: [Cascade.ALL] })
+  caracteristica!: Rel<Characteristic>
 }

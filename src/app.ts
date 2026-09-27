@@ -11,6 +11,7 @@ import { usuarioRouter } from './usuario/usuario.routes.js'
 import { publicadorRouter } from './publicador/publicador.routes.js'
 import { adoptanteRouter } from './adoptante/adoptante.routes.js'
 import { mascotaRouter } from './mascota/mascota.routes.js'
+import { characteristicRouter } from './characteristic/characteristic.routes.js'
 import { localidadRouter } from './localidad/localidad.routes.js'
 import { solicitudRouter } from './solicitud/solicitud.routes.js'
 import { uploadRouter } from './upload/upload.routes.js'
@@ -58,6 +59,7 @@ app.use('/api/usuarios', usuarioRouter)
 app.use('/api/publicadores', publicadorRouter)
 app.use('/api/adoptantes', adoptanteRouter)
 app.use('/api/mascotas', mascotaRouter)
+app.use('/api/characteristics', characteristicRouter)
 app.use('/api/localidades', localidadRouter)
 app.use('/api/solicitudes', solicitudRouter)
 app.use('/api/uploads', uploadRouter)

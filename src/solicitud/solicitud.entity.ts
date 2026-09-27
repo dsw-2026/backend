@@ -3,7 +3,7 @@ import { Rel } from '@mikro-orm/core'
 import { BaseEntity } from '../shared/db/base.entity.js'
 import { Mascota } from '../mascota/mascota.entity.js'
 import { Adoptante } from '../adoptante/adoptante.entity.js'
-import { Energia, Tamanio, Tolerancia } from '../caracteristica/caracteristica.entity.js'
+import { EnergyLevel, Size, Tolerance } from '../characteristic/characteristic.enums.js'
 
 export const EstadoSolicitud = {
   PENDIENTE: 'PENDIENTE',
@@ -27,24 +27,24 @@ export class Solicitud extends BaseEntity {
   mensaje?: string
 
   // Preferencias que declara el Adoptante en ESTA solicitud puntual. Se
-  // comparan solo contra Caracteristica, uno a uno (decisión del equipo:
+  // comparan solo contra Characteristic, uno a uno (decisión del equipo:
   // los atributos del Adoptante no entran en esta comparación). El
   // resultado se calcula al vuelo cuando se consulta, no se persiste —
   // ver calcularDesglose en el frontend.
-  @Enum(() => Object.values(Energia))
-  energiaDeseada!: Energia
+  @Enum(() => Object.values(EnergyLevel))
+  energiaDeseada!: EnergyLevel
 
-  @Enum(() => Object.values(Tamanio))
-  tamanioDeseado!: Tamanio
+  @Enum(() => Object.values(Size))
+  tamanioDeseado!: Size
 
-  @Enum(() => Object.values(Tolerancia))
-  toleraNinosDeseado!: Tolerancia
+  @Enum(() => Object.values(Tolerance))
+  toleraNinosDeseado!: Tolerance
 
-  @Enum(() => Object.values(Tolerancia))
-  toleraAnimalesDeseado!: Tolerancia
+  @Enum(() => Object.values(Tolerance))
+  toleraAnimalesDeseado!: Tolerance
 
-  @Enum(() => Object.values(Tolerancia))
-  toleraEncierroDeseado!: Tolerancia
+  @Enum(() => Object.values(Tolerance))
+  toleraEncierroDeseado!: Tolerance
 
   // Sin cascada: no se debe poder borrar una Mascota o un Adoptante
   // mientras tengan solicitudes asociadas, para no perder el historial.

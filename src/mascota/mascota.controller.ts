@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { orm } from '../shared/db/orm.js'
 import { Mascota } from './mascota.entity.js'
-import { Caracteristica } from '../caracteristica/caracteristica.entity.js'
+import { Characteristic } from '../characteristic/characteristic.entity.js'
 import { Publicador } from '../publicador/publicador.entity.js'
 import { Species } from '../species/species.entity.js'
 import { removeNullish } from '../shared/utils/removeNullish.js'
@@ -84,7 +84,7 @@ async function create(req: Request, res: Response) {
       return res.status(404).json({ message: 'Especie no encontrada' })
     }
 
-    const caracteristica = orm.em.create(Caracteristica, req.body.sanitizedCaracteristica)
+    const caracteristica = orm.em.create(Characteristic, req.body.sanitizedCaracteristica)
     const mascota = orm.em.create(Mascota, {
       ...req.body.sanitizedInput,
       publicador,
