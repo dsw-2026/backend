@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser'
 import { RequestContext } from '@mikro-orm/core'
 import { orm, syncSchema } from './shared/db/orm.js'
 import { speciesRouter } from './species/species.routes.js'
-import { provinciaRouter } from './provincia/provincia.routes.js'
+import { provinceRouter } from './province/province.routes.js'
 import { usuarioRouter } from './usuario/usuario.routes.js'
 import { publicadorRouter } from './publicador/publicador.routes.js'
 import { adoptanteRouter } from './adoptante/adoptante.routes.js'
@@ -53,7 +53,7 @@ app.use((req, res, next) => {
 // Cada router se monta bajo un prefijo /api/<recurso>, siguiendo la
 // convención REST. El orden importa: deben ir antes del catch-all final.
 app.use('/api/species', speciesRouter)
-app.use('/api/provincias', provinciaRouter)
+app.use('/api/provinces', provinceRouter)
 app.use('/api/usuarios', usuarioRouter)
 app.use('/api/publicadores', publicadorRouter)
 app.use('/api/adoptantes', adoptanteRouter)

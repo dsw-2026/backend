@@ -1,7 +1,7 @@
 import { Entity, Property, ManyToOne } from '@mikro-orm/decorators/legacy'
 import { Rel } from '@mikro-orm/core'
 import { BaseEntity } from '../shared/db/base.entity.js'
-import { Provincia } from '../provincia/provincia.entity.js'
+import { Province } from '../province/province.entity.js'
 
 @Entity()
 export class Localidad extends BaseEntity {
@@ -14,6 +14,6 @@ export class Localidad extends BaseEntity {
 
   // Sin cascada: no se puede borrar una Provincia mientras tenga
   // localidades asociadas.
-  @ManyToOne(() => Provincia, { nullable: false })
-  provincia!: Rel<Provincia>
+  @ManyToOne(() => Province, { nullable: false })
+  provincia!: Rel<Province>
 }
