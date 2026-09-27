@@ -10,7 +10,7 @@ export class CharacteristicService {
   async findOne(id: number) {
     const characteristic = await characteristicDao.findOne(id)
     if (!characteristic) {
-      throw new NotFoundError(`Characteristic with ID ${id} not found`)
+      throw new NotFoundError(`No se encontró la característica con ID ${id}`)
     }
     return characteristic
   }

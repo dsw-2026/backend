@@ -10,7 +10,7 @@ export class ProvinceService {
   async findOne(id: number) {
     const province = await provinceDao.findOne(id)
     if (!province) {
-      throw new NotFoundError(`Province with ID ${id} not found`)
+      throw new NotFoundError(`No se encontró la provincia con ID ${id}`)
     }
     return province
   }

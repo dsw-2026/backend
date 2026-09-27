@@ -2,23 +2,27 @@ import type { Request, Response, NextFunction } from 'express'
 import type { ZodType } from 'zod'
 import { ValidationError } from '../errors/app.error.js'
 
-// Middleware fábrica: recibe un schema de Zod y devuelve un middleware que
-// valida el req.body contra ese schema.
-// - safeParse valida sin lanzar excepción: devuelve { success, data } o { success, error }.
-// - Si falla, lanza un ValidationError (que el errorHandler convierte en 400)
-//   con la lista de campos que no cumplieron.
-// - Si pasa, guarda los datos ya validados (y con el tipo correcto) en
-//   req.body.validated para que el controller los use.
 export function validate(schema: ZodType) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const result = schema.safeParse(req.body)
+    const result = schema.safeParse({
+      body: req.body,
+      params: req.params,
+      query: req.query,
+    })
 
     if (!result.success) {
-      const details = result.error.issues.map((issue) => issue.message)
-      throw new ValidationError('Invalid input data', details)
+      const details = result.error.issues.map((issue) => ({
+        field: issue.path[issue.path.length - 1] ?? 'unknown',
+        message: issue.message,
+      }))
+      throw new ValidationError('Datos de entrada inválidos', details)
     }
 
-    req.body.validated = result.data
+    const data = result.data as { body?: unknown; params?: unknown; query?: unknown }
+    if (data.body !== undefined) req.body = data.body
+    if (data.params !== undefined) req.params = data.params as any
+    if (data.query !== undefined) req.query = data.query as any
+
     next()
   }
 }

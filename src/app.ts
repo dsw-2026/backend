@@ -18,7 +18,8 @@ import { uploadRouter } from './upload/upload.routes.js'
 import { authRouter } from './auth/auth.routes.js'
 import { errorHandler } from './shared/middlewares/errorHandler.middlewares.js'
 import 'dotenv/config'
-
+import * as z from 'zod'
+z.config(z.locales.es())
 
 export const app = express()
 

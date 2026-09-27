@@ -10,7 +10,7 @@ export class SpeciesService {
   async findOne(id: number) {
     const species = await speciesDao.findOne(id)
     if (!species) {
-      throw new NotFoundError(`Species with ID ${id} not found`)
+      throw new NotFoundError(`No se encontró la especie con ID ${id}`)
     }
     return species
   }
