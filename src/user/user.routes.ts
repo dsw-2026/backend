@@ -6,7 +6,46 @@ import { userController } from './user.controller.js'
 
 export const userRouter = Router()
 
+/**
+ * @swagger
+ * tags:
+ *   name: Users
+ *   description: Gestión de usuarios (solo Admin)
+ */
+
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Lista todos los usuarios (solo Admin)
+ *     tags: [Users]
+ *     responses:
+ *       200: { description: Lista de usuarios }
+ *       403: { description: Sin permisos }
+ */
 userRouter.get('/', verificarToken, verificarTipo('Admin'), userController.findAll)
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: Obtiene un usuario por ID (solo Admin)
+ *     tags: [Users]
+ *     parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+ *     responses:
+ *       200: { description: Usuario encontrado }
+ *       404: { description: No encontrado }
+ */
 userRouter.get('/:id', verificarToken, verificarTipo('Admin'), validate(idParamSchema), userController.findOne)
 
+/**
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Elimina un usuario (solo Admin)
+ *     tags: [Users]
+ *     parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+ *     responses:
+ *       200: { description: Usuario eliminado }
+ */
 userRouter.delete('/:id', verificarToken, verificarTipo('Admin'), validate(idParamSchema), userController.remove)

@@ -8,7 +8,7 @@ import 'dotenv/config'
 import { RequestContext } from '@mikro-orm/core'
 import { orm, syncSchema } from './shared/db/orm.js'
 import { errorHandler } from './shared/middlewares/errorHandler.middlewares.js'
-
+import swaggerUi from 'swagger-ui-express'
 // Routers
 import { speciesRouter } from './species/species.routes.js'
 import { provinceRouter } from './province/province.routes.js'
@@ -22,6 +22,7 @@ import { petRouter } from './pet/pet.routes.js'
 import { applicationRouter } from './application/application.routes.js'
 import { uploadRouter } from './upload/upload.routes.js'
 import { authRouter } from './auth/auth.routes.js'
+import { swaggerSpec } from './shared/swagger.js'
 
 // Zod: Spanish locale for validation messages
 z.config(z.locales.es())
@@ -61,6 +62,7 @@ app.use('/api/pets', petRouter)
 app.use('/api/applications', applicationRouter)
 app.use('/api/uploads', uploadRouter)
 app.use('/api/auth', authRouter)
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 // Catch-all: unmatched routes return 404 as JSON
 app.use((req, res) => {

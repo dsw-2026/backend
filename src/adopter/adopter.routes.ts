@@ -6,10 +6,70 @@ import { adopterController } from './adopter.controller.js'
 
 export const adopterRouter = Router()
 
+/**
+ * @swagger
+ * tags:
+ *   name: Adopters
+ *   description: Personas que buscan adoptar
+ */
+
+/**
+ * @swagger
+ * /adopters:
+ *   post:
+ *     summary: Registra un adoptante (público)
+ *     tags: [Adopters]
+ *     responses:
+ *       201: { description: Adoptante creado }
+ *       400: { description: Datos inválidos }
+ */
 adopterRouter.post('/', validate(createAdopterSchema), adopterController.create)
 
+/**
+ * @swagger
+ * /adopters:
+ *   get:
+ *     summary: Lista todos los adoptantes (autenticado)
+ *     tags: [Adopters]
+ *     responses:
+ *       200: { description: Lista de adoptantes }
+ */
 adopterRouter.get('/', verificarToken, adopterController.findAll)
+
+/**
+ * @swagger
+ * /adopters/{id}:
+ *   get:
+ *     summary: Obtiene un adoptante por ID (autenticado)
+ *     tags: [Adopters]
+ *     parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+ *     responses:
+ *       200: { description: Adoptante encontrado }
+ *       404: { description: No encontrado }
+ */
 adopterRouter.get('/:id', verificarToken, validate(idParamSchema), adopterController.findOne)
+
+/**
+ * @swagger
+ * /adopters/{id}:
+ *   put:
+ *     summary: Actualiza un adoptante (autenticado)
+ *     tags: [Adopters]
+ *     parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+ *     responses:
+ *       200: { description: Adoptante actualizado }
+ */
 adopterRouter.put('/:id', verificarToken, validate(updateAdopterSchema), adopterController.update)
 adopterRouter.patch('/:id', verificarToken, validate(updateAdopterSchema), adopterController.update)
+
+/**
+ * @swagger
+ * /adopters/{id}:
+ *   delete:
+ *     summary: Elimina un adoptante (autenticado)
+ *     tags: [Adopters]
+ *     parameters: [{ in: path, name: id, required: true, schema: { type: integer } }]
+ *     responses:
+ *       200: { description: Adoptante eliminado }
+ */
 adopterRouter.delete('/:id', verificarToken, validate(idParamSchema), adopterController.remove)
