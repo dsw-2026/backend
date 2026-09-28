@@ -1,7 +1,7 @@
 import { Entity, Property, ManyToOne } from '@mikro-orm/decorators/legacy'
 import { Rel } from '@mikro-orm/core'
 import { BaseEntity } from '../shared/db/base.entity.js'
-import { Localidad } from '../localidad/localidad.entity.js'
+import { Locality } from '../locality/locality.entity.js'
 
 @Entity({ discriminatorColumn: 'tipoUsuario', abstract: true })
 export class Usuario extends BaseEntity {
@@ -29,8 +29,8 @@ export class Usuario extends BaseEntity {
   @Property({ nullable: true })
   direccion?: string
 
-  @ManyToOne(() => Localidad, { nullable: true })
-  localidad?: Rel<Localidad>
+@ManyToOne(() => Locality, { nullable: true })
+localidad?: Rel<Locality>
 
   @Property({ nullable: false, default: false })
   verificacion!: boolean
