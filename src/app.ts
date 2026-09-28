@@ -3,80 +3,74 @@ import express from 'express'
 import cors from 'cors'
 import path from 'node:path'
 import cookieParser from 'cookie-parser'
+import * as z from 'zod'
+import 'dotenv/config'
 import { RequestContext } from '@mikro-orm/core'
 import { orm, syncSchema } from './shared/db/orm.js'
+import { errorHandler } from './shared/middlewares/errorHandler.middlewares.js'
+
+// Routers
 import { speciesRouter } from './species/species.routes.js'
 import { provinceRouter } from './province/province.routes.js'
-import { usuarioRouter } from './usuario/usuario.routes.js'
-import { publicadorRouter } from './publicador/publicador.routes.js'
-import { adoptanteRouter } from './adoptante/adoptante.routes.js'
-import { mascotaRouter } from './mascota/mascota.routes.js'
 import { characteristicRouter } from './characteristic/characteristic.routes.js'
 import { localityRouter } from './locality/locality.routes.js'
-import { solicitudRouter } from './solicitud/solicitud.routes.js'
+import { userRouter } from './user/user.routes.js'
+import { publisherRouter } from './publisher/publisher.routes.js'
+import { adopterRouter } from './adopter/adopter.routes.js'
+import { adminRouter } from './admin/admin.routes.js'
+import { petRouter } from './pet/pet.routes.js'
+import { applicationRouter } from './application/application.routes.js'
 import { uploadRouter } from './upload/upload.routes.js'
 import { authRouter } from './auth/auth.routes.js'
-import { errorHandler } from './shared/middlewares/errorHandler.middlewares.js'
-import 'dotenv/config'
-import * as z from 'zod'
+
+// Zod: Spanish locale for validation messages
 z.config(z.locales.es())
 
 export const app = express()
 
-// Habilita al frontend (otro origin: puerto distinto) a consultar esta API.
-// Sin esto, el navegador bloquea toda respuesta del backend aunque el
-// pedido haya llegado bien — CORS_ORIGIN se puede sobreescribir por .env
-// si en el futuro el frontend corre en otra URL (ej: al deployar).
+// CORS: allow the frontend (different origin/port) to consume this API
 app.use(cors({
   origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
-  credentials: true, // ← agregado
+  credentials: true,
 }))
 
+// Body parser
 app.use(express.json())
 
-// Lee las cookies que llegan en cada petición y las deja disponibles en
-// req.cookies. Necesario para poder leer el token de autenticación, que
-// ahora viaja en una cookie httpOnly en vez del header Authorization.
+// Cookie parser: needed to read the httpOnly auth token cookie
 app.use(cookieParser())
 
-// Sirve la carpeta uploads/ (raíz del proyecto) como archivos estáticos:
-// una imagen guardada como uploads/xxxx.jpg queda accesible en
-// http://localhost:3000/uploads/xxxx.jpg — esa es la URL que se persiste
-// en los campos foto/fotoPerfil.
+// Static files: serves the uploads/ folder (pet and profile photos)
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')))
 
-// Crea un EntityManager aislado por cada petición HTTP (Unit of Work
-// independiente), evitando que peticiones concurrentes se interfieran
-// entre sí. Debe ir después de los middlewares base y antes de las rutas.
+// MikroORM RequestContext: isolated EntityManager per HTTP request
 app.use((req, res, next) => {
-  RequestContext.create(orm.em, next)
+  RequestContext.create(orm.em, () => next())
 })
 
-// Cada router se monta bajo un prefijo /api/<recurso>, siguiendo la
-// convención REST. El orden importa: deben ir antes del catch-all final.
+// Routes
 app.use('/api/species', speciesRouter)
 app.use('/api/provinces', provinceRouter)
-app.use('/api/usuarios', usuarioRouter)
-app.use('/api/publicadores', publicadorRouter)
-app.use('/api/adoptantes', adoptanteRouter)
-app.use('/api/mascotas', mascotaRouter)
 app.use('/api/characteristics', characteristicRouter)
 app.use('/api/localities', localityRouter)
-app.use('/api/solicitudes', solicitudRouter)
+app.use('/api/users', userRouter)
+app.use('/api/publishers', publisherRouter)
+app.use('/api/adopters', adopterRouter)
+app.use('/api/admins', adminRouter)
+app.use('/api/pets', petRouter)
+app.use('/api/applications', applicationRouter)
 app.use('/api/uploads', uploadRouter)
 app.use('/api/auth', authRouter)
 
-// Catch-all: atrapa cualquier petición que no coincidió con ninguna ruta
-// anterior, devolviendo un 404 en JSON en vez del HTML por defecto de
-// Express. Debe ser el último app.use().
+// Catch-all: unmatched routes return 404 as JSON
 app.use((req, res) => {
   res.status(404).json({ message: 'Recurso no encontrado' })
 })
 
-app.use(errorHandler)   
+// Global error handler (must be last)
+app.use(errorHandler)
 
-// Genera/actualiza el esquema de la base según las entidades (solo
-// apropiado en desarrollo, ver advertencia en orm.ts).
+// Schema sync (development only, see orm.ts)
 await syncSchema()
 
 app.listen(3000, () => {
