@@ -16,6 +16,7 @@ const POPULATE = [
   'pet',
   'pet.species',
   'pet.characteristic',
+  'pet.publisher',
   'adopter',
   'adopter.locality',
   'adopter.locality.province',
