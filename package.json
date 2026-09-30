@@ -7,7 +7,14 @@
     "test": "vitest run",
     "build": "tsc -p ./tsconfig.json",
     "start:dev": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node ./dist/app.js\"",
-    "seed:admin": "tsc -p ./tsconfig.json && node ./dist/shared/db/seed-admin.js"
+    "seed:admin": "tsc -p ./tsconfig.json && node ./dist/shared/db/seed-admin.js",
+    "seed:run": "tsc -p ./tsconfig.json && mikro-orm seeder:run --config ./dist/mikro-orm.config.js"
+  },
+  "mikro-orm": {
+    "useTsNode": false,
+    "configPaths": [
+      "./dist/mikro-orm.config.js"
+    ]
   },
   "keywords": [],
   "author": "",
@@ -21,6 +28,7 @@
   },
   "type": "module",
   "devDependencies": {
+    "@mikro-orm/cli": "7.1.6",
     "@types/bcrypt": "6.0.0",
     "@types/cookie-parser": "1.4.10",
     "@types/cors": "2.8.19",
@@ -38,6 +46,7 @@
     "@mikro-orm/core": "7.1.6",
     "@mikro-orm/decorators": "7.1.6",
     "@mikro-orm/mysql": "7.1.6",
+    "@mikro-orm/seeder": "7.1.6",
     "@mikro-orm/sql-highlighter": "1.0.1",
     "bcrypt": "6.0.0",
     "cookie-parser": "1.4.7",
