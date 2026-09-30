@@ -1,13 +1,32 @@
-import { applicationDao } from './application.dao.js'
+import { applicationDao as defaultApplicationDao } from './application.dao.js'
 import { PetService } from '../pet/pet.service.js'
 import { NotFoundError, ConflictError, ForbiddenError } from '../shared/errors/app.error.js'
 import { ApplicationStatus } from './application.enums.js'
 import { PetStatus } from '../pet/pet.enums.js'
 import type { CreateApplicationDto } from './schemas/application.schema.js'
 
-const petService = new PetService()
+// Tipos mínimos de las dependencias, para poder inyectar mocks en los tests.
+interface PetServiceLike {
+  findOne(id: number): Promise<any>
+}
+interface ApplicationDaoLike {
+  findAll(filter: any): Promise<any[]>
+  findOne(id: number): Promise<any>
+  findExisting(petId: number, adopterId: number): Promise<any>
+  create(data: any): Promise<any>
+  flush(): Promise<void>
+  delete(application: any): Promise<any>
+  findPendingByPet(petId: number, excludeId: number, status: ApplicationStatus): Promise<any[]>
+}
 
 export class ApplicationService {
+  // Las dependencias se reciben por constructor. Por defecto usa las reales,
+  // pero en los tests se pueden inyectar mocks. (Inyección de dependencias.)
+  constructor(
+    private petService: PetServiceLike = new PetService(),
+    private applicationDao: ApplicationDaoLike = defaultApplicationDao,
+  ) {}
+
   async findAll(userId: number, userType: string, statusFilter?: string) {
     const filter: any = {}
     if (statusFilter) filter.status = statusFilter
@@ -22,11 +41,11 @@ export class ApplicationService {
       throw new ForbiddenError('Rol no autorizado')
     }
 
-    return await applicationDao.findAll(filter)
+    return await this.applicationDao.findAll(filter)
   }
 
   async findOne(id: number) {
-    const application = await applicationDao.findOne(id)
+    const application = await this.applicationDao.findOne(id)
     if (!application) {
       throw new NotFoundError(`No se encontró la solicitud con ID ${id}`)
     }
@@ -35,20 +54,18 @@ export class ApplicationService {
 
   // EPIC A: crear solicitud. Valida disponibilidad y evita duplicados.
   async create(dto: CreateApplicationDto, adopterId: number) {
-    const pet = await petService.findOne(dto.pet)
+    const pet = await this.petService.findOne(dto.pet)
 
-    // Regla de negocio: solo se puede solicitar una mascota disponible.
     if (pet.status !== PetStatus.AVAILABLE) {
       throw new ConflictError('La mascota no está disponible para adopción')
     }
 
-    // Un adoptante no puede solicitar dos veces la misma mascota.
-    const existing = await applicationDao.findExisting(dto.pet, adopterId)
+    const existing = await this.applicationDao.findExisting(dto.pet, adopterId)
     if (existing) {
       throw new ConflictError('Ya tenés una solicitud registrada para esta mascota')
     }
 
-    return await applicationDao.create({
+    return await this.applicationDao.create({
       message: dto.message,
       pet: dto.pet,
       adopter: adopterId,
@@ -62,7 +79,6 @@ export class ApplicationService {
     })
   }
 
-  // EPIC B: aprobar. Marca la mascota como adoptada y rechaza las demás.
   async approve(id: number, publisherId: number) {
     const application = await this.findOne(id)
 
@@ -79,17 +95,15 @@ export class ApplicationService {
     application.status = ApplicationStatus.APPROVED
     application.pet.status = PetStatus.ADOPTED
 
-    // Rechaza en cascada las demás solicitudes pendientes de esa mascota.
-    const others = await applicationDao.findPendingByPet(
+    const others = await this.applicationDao.findPendingByPet(
       application.pet.id, application.id, ApplicationStatus.PENDING
     )
     others.forEach((o) => { o.status = ApplicationStatus.REJECTED })
 
-    await applicationDao.flush()
+    await this.applicationDao.flush()
     return application
   }
 
-  // EPIC B: rechazar. Cambio de estado simple.
   async reject(id: number, publisherId: number) {
     const application = await this.findOne(id)
 
@@ -101,7 +115,7 @@ export class ApplicationService {
     }
 
     application.status = ApplicationStatus.REJECTED
-    await applicationDao.flush()
+    await this.applicationDao.flush()
     return application
   }
 
@@ -114,7 +128,7 @@ export class ApplicationService {
       throw new ForbiddenError('No tenés permiso para eliminar esta solicitud')
     }
 
-    return await applicationDao.delete(application)
+    return await this.applicationDao.delete(application)
   }
 }
 
