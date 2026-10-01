@@ -5,7 +5,7 @@ import { ApplicationStatus } from './application.enums.js'
 import { PetStatus } from '../pet/pet.enums.js'
 import type { CreateApplicationDto } from './schemas/application.schema.js'
 
-// Tipos mínimos de las dependencias, para poder inyectar mocks en los tests.
+// Minimal dependency types, so mocks can be injected in tests.
 interface PetServiceLike {
   findOne(id: number): Promise<any>
 }
@@ -18,15 +18,17 @@ interface ApplicationDaoLike {
   delete(application: any): Promise<any>
   findPendingByPet(petId: number, excludeId: number, status: ApplicationStatus): Promise<any[]>
 }
-
+ 
 export class ApplicationService {
-  // Las dependencias se reciben por constructor. Por defecto usa las reales,
-  // pero en los tests se pueden inyectar mocks. (Inyección de dependencias.)
+  // Dependencies are injected via the constructor (defaults to the real
+  // ones, mocks can be passed in tests).
   constructor(
     private petService: PetServiceLike = new PetService(),
     private applicationDao: ApplicationDaoLike = defaultApplicationDao,
   ) {}
 
+  // Filters applications by role: an Adopter sees their own, a Publisher
+  // sees the ones for their pets, an Admin sees all.
   async findAll(userId: number, userType: string, statusFilter?: string) {
     const filter: any = {}
     if (statusFilter) filter.status = statusFilter
@@ -36,7 +38,7 @@ export class ApplicationService {
     } else if (userType === 'Publisher') {
       filter.pet = { publisher: userId }
     } else if (userType === 'Admin') {
-      // ve todas
+      // sees all
     } else {
       throw new ForbiddenError('Rol no autorizado')
     }
@@ -52,14 +54,16 @@ export class ApplicationService {
     return application
   }
 
-  // EPIC A: crear solicitud. Valida disponibilidad y evita duplicados.
+  // EPIC A: create an application. Validates availability and prevents duplicates.
   async create(dto: CreateApplicationDto, adopterId: number) {
     const pet = await this.petService.findOne(dto.pet)
 
+    // Business rule: only available pets can be requested.
     if (pet.status !== PetStatus.AVAILABLE) {
       throw new ConflictError('La mascota no está disponible para adopción')
     }
 
+    // An adopter can't request the same pet twice.
     const existing = await this.applicationDao.findExisting(dto.pet, adopterId)
     if (existing) {
       throw new ConflictError('Ya tenés una solicitud registrada para esta mascota')
@@ -79,6 +83,7 @@ export class ApplicationService {
     })
   }
 
+  // EPIC B: approve. Marks the pet as adopted and rejects the other applications.
   async approve(id: number, publisherId: number) {
     const application = await this.findOne(id)
 
@@ -93,8 +98,10 @@ export class ApplicationService {
     }
 
     application.status = ApplicationStatus.APPROVED
+    application.resolutionDate = new Date()
     application.pet.status = PetStatus.ADOPTED
 
+    // Cascade-reject the other pending applications for that pet.
     const others = await this.applicationDao.findPendingByPet(
       application.pet.id, application.id, ApplicationStatus.PENDING
     )
@@ -104,6 +111,7 @@ export class ApplicationService {
     return application
   }
 
+  // EPIC B: reject. Simple status change.
   async reject(id: number, publisherId: number) {
     const application = await this.findOne(id)
 
@@ -115,10 +123,12 @@ export class ApplicationService {
     }
 
     application.status = ApplicationStatus.REJECTED
+    application.resolutionDate = new Date()
     await this.applicationDao.flush()
     return application
   }
 
+  // Removes an application (only the owner adopter or the owner publisher).
   async remove(id: number, userId: number, userType: string) {
     const application = await this.findOne(id)
 

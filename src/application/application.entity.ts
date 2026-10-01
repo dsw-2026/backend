@@ -15,6 +15,9 @@ export class Application extends BaseEntity {
   @Property({ nullable: false, onCreate: () => new Date() })
   applicationDate!: Date
 
+  @Property({ nullable: true })
+  resolutionDate?: Date
+
   @Property({ nullable: true, columnType: 'text' })
   message?: string
 

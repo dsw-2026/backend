@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { uploadMiddleware, uploadImage } from './upload.controller.js'
-import { verificarToken } from '../auth/auth.middleware.js'
+import { verificarToken } from '../shared/middlewares/auth.middleware.js'
 
 export const uploadRouter = Router()
 

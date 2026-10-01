@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { login, obtenerPerfil } from './auth.controller.js'
-import { verificarToken } from '../auth/auth.middleware.js'
+import { verificarToken } from '../shared/middlewares/auth.middleware.js'
 
 export const authRouter = Router()
 
@@ -17,17 +17,8 @@ export const authRouter = Router()
  *   post:
  *     summary: Inicia sesión y devuelve una cookie de sesión
  *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               email: { type: string, example: "admin@fluffy.com" }
- *               password: { type: string, example: "admin123" }
  *     responses:
- *       200: { description: Login exitoso (setea cookie httpOnly) }
+ *       200: { description: Login exitoso }
  *       401: { description: Credenciales incorrectas }
  */
 authRouter.post('/login', login)

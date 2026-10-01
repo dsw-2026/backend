@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { verificarToken } from '../auth/auth.middleware.js'
+import { verificarToken } from '../shared/middlewares/auth.middleware.js'
 import { validate } from '../shared/middlewares/validate.middleware.js'
 import { createPublisherSchema, updatePublisherSchema, idParamSchema } from './schemas/publisher.schema.js'
 import { publisherController } from './publisher.controller.js'

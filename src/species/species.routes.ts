@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { verificarToken, verificarTipo } from '../auth/auth.middleware.js'
+import { verificarToken, verificarTipo } from '../shared/middlewares/auth.middleware.js'
 import { validate } from '../shared/middlewares/validate.middleware.js'
 import { createSpeciesSchema, updateSpeciesSchema, idParamSchema } from './schemas/species.schema.js'
 import { speciesController } from './species.controller.js'

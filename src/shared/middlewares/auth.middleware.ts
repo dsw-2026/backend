@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
-import { UnauthorizedError, ForbiddenError } from '../shared/errors/app.error.js'
+import { UnauthorizedError, ForbiddenError } from '../errors/app.error.js'
 
 export interface TokenPayload {
   id: number

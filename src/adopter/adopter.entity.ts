@@ -17,5 +17,8 @@ export class Adopter extends User {
   hasOtherAnimals?: boolean
 
   @Property({ nullable: true })
+  hasChildren?: boolean  
+
+  @Property({ nullable: true })
   otherAnimalsDetail?: string
 }

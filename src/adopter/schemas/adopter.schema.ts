@@ -7,7 +7,7 @@ const adopterBaseFields = {
   firstName: z.string().min(1, 'El nombre es obligatorio'),
   lastName: z.string().min(1, 'El apellido es obligatorio'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-  email: z.string().email('El email no es válido'),
+  email: z.email('El email no es válido'),
   phone: z.string().optional(),
   description: z.string().optional(),
   address: z.string().optional(),
@@ -17,6 +17,7 @@ const adopterBaseFields = {
   housingType: z.enum(HousingType).optional(),
   hasYard: z.boolean().optional(),
   hasOtherAnimals: z.boolean().optional(),
+  hasChildren: z.boolean().optional(), 
   otherAnimalsDetail: z.string().optional(),
 }
 
