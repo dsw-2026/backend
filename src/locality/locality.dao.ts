@@ -1,4 +1,4 @@
-import { orm } from '../shared/db/orm.js'
+import { orm } from '../config/orm.js'
 import { Locality } from './locality.entity.js'
 import { mapDbError } from '../shared/errors/mapDbError.js'
 import type { CreateLocalityDto, UpdateLocalityDto } from './schemas/locality.schema.js'

@@ -1,9 +1,9 @@
 import 'reflect-metadata'
 import 'dotenv/config'
 import bcrypt from 'bcrypt'
-import { orm } from './orm.js'
-import { User } from '../../user/user.entity.js'
-import { Admin } from '../../admin/admin.entity.js'
+import { orm } from '../../../config/orm.js'
+import { User } from '../../../user/user.entity.js'
+import { Admin } from '../../../admin/admin.entity.js'
 
 async function seedAdmin() {
   const username = process.env.ADMIN_USERNAME

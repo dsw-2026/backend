@@ -1,4 +1,4 @@
-import { orm } from '../shared/db/orm.js'
+import { orm } from '../config/orm.js'
 import { Adopter } from './adopter.entity.js'
 import { mapDbError } from '../shared/errors/mapDbError.js'
 

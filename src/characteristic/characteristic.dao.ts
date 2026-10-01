@@ -1,4 +1,4 @@
-import { orm } from '../shared/db/orm.js'
+import { orm } from '../config/orm.js'
 import { Characteristic } from './characteristic.entity.js'
 import { mapDbError } from '../shared/errors/mapDbError.js'
 import type { CreateCharacteristicDto, UpdateCharacteristicDto } from './schemas/characteristic.schema.js'

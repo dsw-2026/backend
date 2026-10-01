@@ -1,4 +1,4 @@
-import { orm } from '../shared/db/orm.js'
+import { orm } from '../config/orm.js'
 import { Application } from './application.entity.js'
 import { mapDbError } from '../shared/errors/mapDbError.js'
 import type { RequiredEntityData } from '@mikro-orm/core'

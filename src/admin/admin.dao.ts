@@ -1,4 +1,4 @@
-import { orm } from '../shared/db/orm.js'
+import { orm } from '../config/orm.js'
 import { Admin } from './admin.entity.js'
 import { mapDbError } from '../shared/errors/mapDbError.js'
 

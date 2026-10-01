@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser'
 import * as z from 'zod'
 import 'dotenv/config'
 import { RequestContext } from '@mikro-orm/core'
-import { orm, syncSchema } from './shared/db/orm.js'
+import { orm, syncSchema } from './config/orm.js'
 import { errorHandler } from './shared/middlewares/errorHandler.middlewares.js'
 import swaggerUi from 'swagger-ui-express'
 // Routers

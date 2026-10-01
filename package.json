@@ -7,7 +7,7 @@
     "test": "vitest run",
     "build": "tsc -p ./tsconfig.json",
     "start:dev": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node ./dist/app.js\"",
-    "seed:admin": "tsc -p ./tsconfig.json && node ./dist/shared/db/seed-admin.js",
+    "seed:admin": "tsc -p ./tsconfig.json && node ./dist/shared/db/seeders/seed-admin.js",
     "seed:run": "tsc -p ./tsconfig.json && mikro-orm seeder:run --config ./dist/mikro-orm.config.js"
   },
   "mikro-orm": {

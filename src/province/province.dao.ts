@@ -1,4 +1,4 @@
-import { orm } from '../shared/db/orm.js'
+import { orm } from '../config/orm.js'
 import { Province } from './province.entity.js'
 import { mapDbError } from '../shared/errors/mapDbError.js'
 import type { CreateProvinceDto, UpdateProvinceDto } from './schemas/province.schema.js'

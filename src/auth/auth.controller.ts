@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { generateToken } from '../shared/utils/jwt.js'
 import { wrap } from '@mikro-orm/core'
-import { orm } from '../shared/db/orm.js'
+import { orm } from '../config/orm.js'
 import { User } from '../user/user.entity.js'
 import { UserService } from '../user/user.service.js'
 import { UnauthorizedError, NotFoundError } from '../shared/errors/app.error.js'

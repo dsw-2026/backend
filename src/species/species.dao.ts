@@ -1,4 +1,4 @@
-import { orm } from '../shared/db/orm.js'
+import { orm } from '../config/orm.js'
 import { Species } from './species.entity.js'
 import { mapDbError } from '../shared/errors/mapDbError.js'
 import type { CreateSpeciesDto, UpdateSpeciesDto } from './schemas/species.schema.js'
