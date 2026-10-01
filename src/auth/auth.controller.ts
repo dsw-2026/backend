@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import jwt from 'jsonwebtoken'
+import { generateToken } from '../shared/utils/jwt.js'
 import { wrap } from '@mikro-orm/core'
 import { orm } from '../shared/db/orm.js'
 import { User } from '../user/user.entity.js'
@@ -22,11 +22,7 @@ async function login(req: Request, res: Response) {
     throw new UnauthorizedError('Email o contraseña incorrectos')
   }
 
-  const token = jwt.sign(
-    { id: user.id, tipo: user.constructor.name },
-    process.env.JWT_SECRET as string,
-    { expiresIn: '1d' }
-  )
+  const token = generateToken({ id: user.id, tipo: user.constructor.name })
 
   res.cookie('auth.token', token, { httpOnly: true })
   res.status(200).json(new ApiResponse('Login exitoso', { id: user.id, username: user.username }))

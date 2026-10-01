@@ -1,11 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
-import jwt from 'jsonwebtoken'
 import { UnauthorizedError } from '../errors/app.error.js'
-
-export interface TokenPayload {
-  id: number
-  tipo: string // 'Publisher' | 'Adopter' | 'Admin'
-}
+import { verifyToken } from '../utils/jwt.js'
+import type { TokenPayload } from '../types/auth.types.js'   
 
 declare global {
   namespace Express {
@@ -23,7 +19,7 @@ function verificarToken(req: Request, res: Response, next: NextFunction) {
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET as string) as TokenPayload
+    const payload = verifyToken(token)
     req.usuario = payload
     next()
   } catch (error) {
