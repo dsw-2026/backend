@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
-import { UnauthorizedError, ForbiddenError } from '../errors/app.error.js'
+import { UnauthorizedError } from '../errors/app.error.js'
 
 export interface TokenPayload {
   id: number
@@ -31,13 +31,4 @@ function verificarToken(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-function verificarTipo(...tiposPermitidos: string[]) {
-  return (req: Request, res: Response, next: NextFunction) => {
-    if (!req.usuario || !tiposPermitidos.includes(req.usuario.tipo)) {
-      throw new ForbiddenError('No tenés permisos para esta acción')
-    }
-    next()
-  }
-}
-
-export { verificarToken, verificarTipo }
+export { verificarToken }

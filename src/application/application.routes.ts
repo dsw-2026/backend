@@ -1,5 +1,6 @@
 import { Router } from 'express'
-import { verificarToken, verificarTipo } from '../shared/middlewares/auth.middleware.js'
+import { verificarToken } from '../shared/middlewares/auth.middleware.js'
+import { verificarTipo } from '../shared/middlewares/role.middleware.js'
 import { validate } from '../shared/middlewares/validate.middleware.js'
 import { createApplicationSchema, idParamSchema } from './schemas/application.schema.js'
 import { applicationController } from './application.controller.js'
