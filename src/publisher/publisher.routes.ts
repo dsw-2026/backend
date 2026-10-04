@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { verificarToken } from '../shared/middlewares/auth.middleware.js'
+import { authenticate } from '../shared/middlewares/auth.middleware.js'
 import { validate } from '../shared/middlewares/validate.middleware.js'
 import { createPublisherSchema, updatePublisherSchema, idParamSchema } from './schemas/publisher.schema.js'
 import { publisherController } from './publisher.controller.js'
@@ -59,8 +59,8 @@ publisherRouter.post('/', validate(createPublisherSchema), publisherController.c
  *     responses:
  *       200: { description: Publicador actualizado }
  */
-publisherRouter.put('/:id', verificarToken, validate(updatePublisherSchema), publisherController.update)
-publisherRouter.patch('/:id', verificarToken, validate(updatePublisherSchema), publisherController.update)
+publisherRouter.put('/:id', authenticate, validate(updatePublisherSchema), publisherController.update)
+publisherRouter.patch('/:id', authenticate, validate(updatePublisherSchema), publisherController.update)
 
 /**
  * @swagger
@@ -72,4 +72,4 @@ publisherRouter.patch('/:id', verificarToken, validate(updatePublisherSchema), p
  *     responses:
  *       200: { description: Publicador eliminado }
  */
-publisherRouter.delete('/:id', verificarToken, publisherController.remove)
+publisherRouter.delete('/:id', authenticate, publisherController.remove)

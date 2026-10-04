@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import type { TokenPayload } from '../types/auth.types.js'   
 
-export function generateToken(payload: { id: number; tipo: string }): string {
+export function generateToken(payload: { id: number; type: string }): string {
   return jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '1d' })
 }
 

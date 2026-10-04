@@ -22,21 +22,21 @@ async function login(req: Request, res: Response) {
     throw new UnauthorizedError('Email o contraseña incorrectos')
   }
 
-  const token = generateToken({ id: user.id, tipo: user.constructor.name })
+  const token = generateToken({ id: user.id, type: user.constructor.name })
 
   res.cookie('auth.token', token, { httpOnly: true })
   res.status(200).json(new ApiResponse('Login exitoso', { id: user.id, username: user.username }))
 }
 
-async function obtenerPerfil(req: Request, res: Response) {
-  const user = await orm.em.findOne(User, { id: req.usuario!.id }, { populate: ['locality'] })
+async function getProfile(req: Request, res: Response) {
+  const user = await orm.em.findOne(User, { id: req.user!.id }, { populate: ['locality'] })
   if (!user) {
     throw new NotFoundError('Usuario no encontrado')
   }
 
   res.status(200).json(
-    new ApiResponse('Perfil obtenido', { ...wrap(user).toJSON(), tipoUsuario: user.constructor.name })
+    new ApiResponse('Perfil obtenido', { ...wrap(user).toJSON(), userType: user.constructor.name })
   )
 }
 
-export { login, obtenerPerfil }
+export { login, getProfile }

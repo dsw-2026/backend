@@ -11,7 +11,6 @@ async function withDbError<T>(fn: () => Promise<T>): Promise<T> {
 }
 
 const POPULATE = ['locality'] as const
-
 export class AdopterDao {
   findAll() {
     return withDbError(() => orm.em.find(Adopter, {}, { populate: POPULATE }))

@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { verificarToken } from '../shared/middlewares/auth.middleware.js'
-import { verificarTipo } from '../shared/middlewares/role.middleware.js'
+import { authenticate } from '../shared/middlewares/auth.middleware.js'
+import { authorize } from '../shared/middlewares/role.middleware.js'
 import { validate } from '../shared/middlewares/validate.middleware.js'
 import { createSpeciesSchema, updateSpeciesSchema, idParamSchema } from './schemas/species.schema.js'
 import { speciesController } from './species.controller.js'
@@ -71,7 +71,7 @@ speciesRouter.get('/:id', validate(idParamSchema), speciesController.findOne)
  *       403:
  *         description: Rol de usuario no autorizado
  */
-speciesRouter.post('/', verificarToken, verificarTipo('Admin'), validate(createSpeciesSchema), speciesController.create)
+speciesRouter.post('/', authenticate, authorize('Admin'), validate(createSpeciesSchema), speciesController.create)
 
 /**
  * @swagger
@@ -106,8 +106,8 @@ speciesRouter.post('/', verificarToken, verificarTipo('Admin'), validate(createS
  *       404:
  *         description: Especie no encontrada
  */
-speciesRouter.put('/:id', verificarToken, verificarTipo('Admin'), validate(updateSpeciesSchema), speciesController.update)
-speciesRouter.patch('/:id', verificarToken, verificarTipo('Admin'), validate(updateSpeciesSchema), speciesController.update)
+speciesRouter.put('/:id', authenticate, authorize('Admin'), validate(updateSpeciesSchema), speciesController.update)
+speciesRouter.patch('/:id', authenticate, authorize('Admin'), validate(updateSpeciesSchema), speciesController.update)
 
 /**
  * @swagger
@@ -132,4 +132,4 @@ speciesRouter.patch('/:id', verificarToken, verificarTipo('Admin'), validate(upd
  *       404:
  *         description: Especie no encontrada
  */
-speciesRouter.delete('/:id', verificarToken, verificarTipo('Admin'), validate(idParamSchema), speciesController.remove)
+speciesRouter.delete('/:id', authenticate, authorize('Admin'), validate(idParamSchema), speciesController.remove)

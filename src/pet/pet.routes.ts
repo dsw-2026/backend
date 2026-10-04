@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { verificarToken } from '../shared/middlewares/auth.middleware.js'
-import { verificarTipo } from '../shared/middlewares/role.middleware.js'
+import { authenticate } from '../shared/middlewares/auth.middleware.js'
+import { authorize } from '../shared/middlewares/role.middleware.js'
 import { validate } from '../shared/middlewares/validate.middleware.js'
 import { createPetSchema, updatePetSchema, idParamSchema } from './schemas/pet.schema.js'
 import { petController } from './pet.controller.js'
@@ -51,7 +51,7 @@ petRouter.get('/:id', validate(idParamSchema), petController.findOne)
  *       201: { description: Mascota creada }
  *       403: { description: Solo un Publisher puede publicar }
  */
-petRouter.post('/', verificarToken, verificarTipo('Publisher'), validate(createPetSchema), petController.create)
+petRouter.post('/', authenticate, authorize('Publisher'), validate(createPetSchema), petController.create)
 
 /**
  * @swagger
@@ -64,8 +64,8 @@ petRouter.post('/', verificarToken, verificarTipo('Publisher'), validate(createP
  *       200: { description: Mascota actualizada }
  *       403: { description: No sos el dueño }
  */
-petRouter.put('/:id', verificarToken, verificarTipo('Publisher', 'Admin'), validate(updatePetSchema), petController.update)
-petRouter.patch('/:id', verificarToken, verificarTipo('Publisher', 'Admin'), validate(updatePetSchema), petController.update)
+petRouter.put('/:id', authenticate, authorize('Publisher', 'Admin'), validate(updatePetSchema), petController.update)
+petRouter.patch('/:id', authenticate, authorize('Publisher', 'Admin'), validate(updatePetSchema), petController.update)
 
 /**
  * @swagger
@@ -77,4 +77,4 @@ petRouter.patch('/:id', verificarToken, verificarTipo('Publisher', 'Admin'), val
  *     responses:
  *       200: { description: Mascota eliminada }
  */
-petRouter.delete('/:id', verificarToken, verificarTipo('Publisher', 'Admin'), validate(idParamSchema), petController.remove)
+petRouter.delete('/:id', authenticate, authorize('Publisher', 'Admin'), validate(idParamSchema), petController.remove)

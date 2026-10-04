@@ -9,12 +9,10 @@ async function withDbError<T>(fn: () => Promise<T>): Promise<T> {
     return mapDbError(error)
   }
 }
-
 export class AdminDao {
   findAll() {
     return withDbError(() => orm.em.find(Admin, {}))
   }
-
   findOne(id: number) {
     return withDbError(() => orm.em.findOne(Admin, { id }))
   }

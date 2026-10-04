@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { login, obtenerPerfil } from './auth.controller.js'
-import { verificarToken } from '../shared/middlewares/auth.middleware.js'
+import { login, getProfile } from './auth.controller.js'
+import { authenticate } from '../shared/middlewares/auth.middleware.js'
 
 export const authRouter = Router()
 
@@ -33,4 +33,4 @@ authRouter.post('/login', login)
  *       200: { description: Perfil del usuario }
  *       401: { description: No autenticado }
  */
-authRouter.get('/me', verificarToken, obtenerPerfil)
+authRouter.get('/me', authenticate, getProfile)

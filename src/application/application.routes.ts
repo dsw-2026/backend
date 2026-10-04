@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { verificarToken } from '../shared/middlewares/auth.middleware.js'
-import { verificarTipo } from '../shared/middlewares/role.middleware.js'
+import { authenticate } from '../shared/middlewares/auth.middleware.js'
+import { authorize } from '../shared/middlewares/role.middleware.js'
 import { validate } from '../shared/middlewares/validate.middleware.js'
 import { createApplicationSchema, idParamSchema } from './schemas/application.schema.js'
 import { applicationController } from './application.controller.js'
@@ -25,7 +25,7 @@ export const applicationRouter = Router()
  *     responses:
  *       200: { description: Lista de solicitudes }
  */
-applicationRouter.get('/', verificarToken, verificarTipo('Adopter', 'Publisher', 'Admin'), applicationController.findAll)
+applicationRouter.get('/', authenticate, authorize('Adopter', 'Publisher', 'Admin'), applicationController.findAll)
 
 /**
  * @swagger
@@ -38,7 +38,7 @@ applicationRouter.get('/', verificarToken, verificarTipo('Adopter', 'Publisher',
  *       200: { description: Solicitud encontrada }
  *       404: { description: No encontrada }
  */
-applicationRouter.get('/:id', verificarToken, verificarTipo('Adopter', 'Publisher', 'Admin'), validate(idParamSchema), applicationController.findOne)
+applicationRouter.get('/:id', authenticate, authorize('Adopter', 'Publisher', 'Admin'), validate(idParamSchema), applicationController.findOne)
 
 /**
  * @swagger
@@ -50,7 +50,7 @@ applicationRouter.get('/:id', verificarToken, verificarTipo('Adopter', 'Publishe
  *       201: { description: Solicitud creada }
  *       409: { description: Mascota no disponible o solicitud duplicada }
  */
-applicationRouter.post('/', verificarToken, verificarTipo('Adopter'), validate(createApplicationSchema), applicationController.create)
+applicationRouter.post('/', authenticate, authorize('Adopter'), validate(createApplicationSchema), applicationController.create)
 
 /**
  * @swagger
@@ -64,7 +64,7 @@ applicationRouter.post('/', verificarToken, verificarTipo('Adopter'), validate(c
  *       403: { description: No sos el publicador dueño }
  *       409: { description: La solicitud ya fue evaluada }
  */
-applicationRouter.patch('/:id/approve', verificarToken, verificarTipo('Publisher'), validate(idParamSchema), applicationController.approve)
+applicationRouter.patch('/:id/approve', authenticate, authorize('Publisher'), validate(idParamSchema), applicationController.approve)
 
 /**
  * @swagger
@@ -76,7 +76,7 @@ applicationRouter.patch('/:id/approve', verificarToken, verificarTipo('Publisher
  *     responses:
  *       200: { description: Solicitud rechazada }
  */
-applicationRouter.patch('/:id/reject', verificarToken, verificarTipo('Publisher'), validate(idParamSchema), applicationController.reject)
+applicationRouter.patch('/:id/reject', authenticate, authorize('Publisher'), validate(idParamSchema), applicationController.reject)
 
 /**
  * @swagger
@@ -88,4 +88,4 @@ applicationRouter.patch('/:id/reject', verificarToken, verificarTipo('Publisher'
  *     responses:
  *       200: { description: Solicitud eliminada }
  */
-applicationRouter.delete('/:id', verificarToken, verificarTipo('Adopter', 'Publisher'), validate(idParamSchema), applicationController.remove)
+applicationRouter.delete('/:id', authenticate, authorize('Adopter', 'Publisher'), validate(idParamSchema), applicationController.remove)

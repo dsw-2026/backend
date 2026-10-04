@@ -6,8 +6,8 @@ export class ApplicationController {
   private service = new ApplicationService()
 
   findAll = async (req: Request, res: Response) => {
-    const { id, tipo } = req.usuario!
-    const applications = await this.service.findAll(id, tipo, req.query.status as string | undefined)
+    const { id, type } = req.user!
+    const applications = await this.service.findAll(id, type, req.query.status as string | undefined)
     return res.status(200).json(new ApiResponse('Solicitudes encontradas', applications))
   }
 
@@ -19,27 +19,27 @@ export class ApplicationController {
 
   create = async (req: Request, res: Response) => {
     // El adoptante es el usuario logueado (del token).
-    const adopterId = req.usuario!.id
+    const adopterId = req.user!.id
     const application = await this.service.create(req.body, adopterId)
     return res.status(201).json(new ApiResponse('Solicitud creada', application))
   }
 
   approve = async (req: Request, res: Response) => {
     const id = Number(req.params.id)
-    const application = await this.service.approve(id, req.usuario!.id)
+    const application = await this.service.approve(id, req.user!.id)
     return res.status(200).json(new ApiResponse('Solicitud aprobada', application))
   }
 
   reject = async (req: Request, res: Response) => {
     const id = Number(req.params.id)
-    const application = await this.service.reject(id, req.usuario!.id)
+    const application = await this.service.reject(id, req.user!.id)
     return res.status(200).json(new ApiResponse('Solicitud rechazada', application))
   }
 
   remove = async (req: Request, res: Response) => {
     const id = Number(req.params.id)
-    const { id: userId, tipo } = req.usuario!
-    await this.service.remove(id, userId, tipo)
+    const { id: userId, type } = req.user!
+    await this.service.remove(id, userId, type)
     return res.status(200).json(new ApiResponse('Solicitud eliminada exitosamente', null))
   }
 }

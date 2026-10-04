@@ -1,4 +1,5 @@
+// Shape of the JWT payload once decoded.
 export interface TokenPayload {
   id: number
-  tipo: string // 'Publisher' | 'Adopter' | 'Admin'
+  type: string // 'Publisher' | 'Adopter' | 'Admin'
 }

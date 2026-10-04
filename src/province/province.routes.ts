@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { verificarToken } from '../shared/middlewares/auth.middleware.js'
-import { verificarTipo } from '../shared/middlewares/role.middleware.js'
+import { authenticate } from '../shared/middlewares/auth.middleware.js'
+import { authorize } from '../shared/middlewares/role.middleware.js'
 import { validate } from '../shared/middlewares/validate.middleware.js'
 import { createProvinceSchema, updateProvinceSchema, idParamSchema } from './schemas/province.schema.js'
 import { provinceController } from './province.controller.js'
@@ -57,7 +57,7 @@ provinceRouter.get('/:id', validate(idParamSchema), provinceController.findOne)
  *       201: { description: Provincia creada }
  *       403: { description: Sin permisos }
  */
-provinceRouter.post('/', verificarToken, verificarTipo('Admin'), validate(createProvinceSchema), provinceController.create)
+provinceRouter.post('/', authenticate, authorize('Admin'), validate(createProvinceSchema), provinceController.create)
 
 /**
  * @swagger
@@ -69,8 +69,8 @@ provinceRouter.post('/', verificarToken, verificarTipo('Admin'), validate(create
  *     responses:
  *       200: { description: Provincia actualizada }
  */
-provinceRouter.put('/:id', verificarToken, verificarTipo('Admin'), validate(updateProvinceSchema), provinceController.update)
-provinceRouter.patch('/:id', verificarToken, verificarTipo('Admin'), validate(updateProvinceSchema), provinceController.update)
+provinceRouter.put('/:id', authenticate, authorize('Admin'), validate(updateProvinceSchema), provinceController.update)
+provinceRouter.patch('/:id', authenticate, authorize('Admin'), validate(updateProvinceSchema), provinceController.update)
 
 /**
  * @swagger
@@ -82,4 +82,4 @@ provinceRouter.patch('/:id', verificarToken, verificarTipo('Admin'), validate(up
  *     responses:
  *       200: { description: Provincia eliminada }
  */
-provinceRouter.delete('/:id', verificarToken, verificarTipo('Admin'), validate(idParamSchema), provinceController.remove)
+provinceRouter.delete('/:id', authenticate, authorize('Admin'), validate(idParamSchema), provinceController.remove)

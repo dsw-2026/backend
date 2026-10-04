@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { uploadMiddleware, uploadImage } from './upload.controller.js'
-import { verificarToken } from '../shared/middlewares/auth.middleware.js'
+import { authenticate } from '../shared/middlewares/auth.middleware.js'
 
 export const uploadRouter = Router()
 
@@ -33,4 +33,4 @@ export const uploadRouter = Router()
  *       400: { description: Tamaño excedido, formato incorrecto o falta el archivo }
  *       401: { description: No autenticado }
  */
-uploadRouter.post('/', verificarToken, uploadMiddleware, uploadImage)
+uploadRouter.post('/', authenticate, uploadMiddleware, uploadImage)

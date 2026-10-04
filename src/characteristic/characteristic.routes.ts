@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { verificarToken } from '../shared/middlewares/auth.middleware.js'
-import { verificarTipo } from '../shared/middlewares/role.middleware.js'
+import { authenticate } from '../shared/middlewares/auth.middleware.js'
+import { authorize } from '../shared/middlewares/role.middleware.js'
 import { validate } from '../shared/middlewares/validate.middleware.js'
 import { createCharacteristicSchema, updateCharacteristicSchema, idParamSchema } from './schemas/characteristic.schema.js'
 import { characteristicController } from './characteristic.controller.js'
@@ -48,7 +48,7 @@ characteristicRouter.get('/:id', validate(idParamSchema), characteristicControll
  *       201: { description: Característica creada }
  *       403: { description: Sin permisos }
  */
-characteristicRouter.post('/', verificarToken, verificarTipo('Admin'), validate(createCharacteristicSchema), characteristicController.create)
+characteristicRouter.post('/', authenticate, authorize('Admin'), validate(createCharacteristicSchema), characteristicController.create)
 
 /**
  * @swagger
@@ -60,8 +60,8 @@ characteristicRouter.post('/', verificarToken, verificarTipo('Admin'), validate(
  *     responses:
  *       200: { description: Característica actualizada }
  */
-characteristicRouter.put('/:id', verificarToken, verificarTipo('Admin'), validate(updateCharacteristicSchema), characteristicController.update)
-characteristicRouter.patch('/:id', verificarToken, verificarTipo('Admin'), validate(updateCharacteristicSchema), characteristicController.update)
+characteristicRouter.put('/:id', authenticate, authorize('Admin'), validate(updateCharacteristicSchema), characteristicController.update)
+characteristicRouter.patch('/:id', authenticate, authorize('Admin'), validate(updateCharacteristicSchema), characteristicController.update)
 
 /**
  * @swagger
@@ -73,4 +73,4 @@ characteristicRouter.patch('/:id', verificarToken, verificarTipo('Admin'), valid
  *     responses:
  *       200: { description: Característica eliminada }
  */
-characteristicRouter.delete('/:id', verificarToken, verificarTipo('Admin'), validate(idParamSchema), characteristicController.remove)
+characteristicRouter.delete('/:id', authenticate, authorize('Admin'), validate(idParamSchema), characteristicController.remove)

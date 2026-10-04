@@ -5,7 +5,7 @@ export class AdminService {
   async findAll() {
     return await adminDao.findAll()
   }
-
+  
   async findOne(id: number) {
     const admin = await adminDao.findOne(id)
     if (!admin) {

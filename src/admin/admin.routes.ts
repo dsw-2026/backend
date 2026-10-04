@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { verificarToken } from '../shared/middlewares/auth.middleware.js'
-import { verificarTipo } from '../shared/middlewares/role.middleware.js'
+import { authenticate } from '../shared/middlewares/auth.middleware.js'
+import { authorize } from '../shared/middlewares/role.middleware.js'
 import { adminController } from './admin.controller.js'
 
 export const adminRouter = Router()
@@ -22,7 +22,7 @@ export const adminRouter = Router()
  *       200: { description: Lista de administradores }
  *       403: { description: Sin permisos }
  */
-adminRouter.get('/', verificarToken, verificarTipo('Admin'), adminController.findAll)
+adminRouter.get('/', authenticate, authorize('Admin'), adminController.findAll)
 
 /**
  * @swagger
@@ -34,4 +34,4 @@ adminRouter.get('/', verificarToken, verificarTipo('Admin'), adminController.fin
  *     responses:
  *       200: { description: Administrador encontrado }
  */
-adminRouter.get('/:id', verificarToken, verificarTipo('Admin'), adminController.findOne)
+adminRouter.get('/:id', authenticate, authorize('Admin'), adminController.findOne)

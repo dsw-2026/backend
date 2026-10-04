@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { verificarToken } from '../shared/middlewares/auth.middleware.js'
-import { verificarTipo } from '../shared/middlewares/role.middleware.js'
+import { authenticate } from '../shared/middlewares/auth.middleware.js'
+import { authorize } from '../shared/middlewares/role.middleware.js'
 import { validate } from '../shared/middlewares/validate.middleware.js'
 import { idParamSchema } from './schemas/user.schema.js'
 import { userController } from './user.controller.js'
@@ -24,7 +24,7 @@ export const userRouter = Router()
  *       200: { description: Lista de usuarios }
  *       403: { description: Sin permisos }
  */
-userRouter.get('/', verificarToken, verificarTipo('Admin'), userController.findAll)
+userRouter.get('/', authenticate, authorize('Admin'), userController.findAll)
 
 /**
  * @swagger
@@ -37,7 +37,7 @@ userRouter.get('/', verificarToken, verificarTipo('Admin'), userController.findA
  *       200: { description: Usuario encontrado }
  *       404: { description: No encontrado }
  */
-userRouter.get('/:id', verificarToken, verificarTipo('Admin'), validate(idParamSchema), userController.findOne)
+userRouter.get('/:id', authenticate, authorize('Admin'), validate(idParamSchema), userController.findOne)
 
 /**
  * @swagger
@@ -49,4 +49,4 @@ userRouter.get('/:id', verificarToken, verificarTipo('Admin'), validate(idParamS
  *     responses:
  *       200: { description: Usuario eliminado }
  */
-userRouter.delete('/:id', verificarToken, verificarTipo('Admin'), validate(idParamSchema), userController.remove)
+userRouter.delete('/:id', authenticate, authorize('Admin'), validate(idParamSchema), userController.remove)

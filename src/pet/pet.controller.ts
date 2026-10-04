@@ -22,7 +22,7 @@ export class PetController {
 
   create = async (req: Request, res: Response) => {
     // El publicador dueño de la mascota es el usuario logueado (del token).
-    const publisherId = req.usuario!.id
+    const publisherId = req.user!.id
     const pet = await this.service.create(req.body, publisherId)
     return res.status(201).json(new ApiResponse('Mascota creada', pet))
   }
@@ -31,10 +31,9 @@ export class PetController {
     const id = Number(req.params.id)
     const pet = await this.service.findOne(id)
 
-    // Solo el publicador dueño o un Admin pueden editar.
-    const { id: userId, tipo } = req.usuario!
-    const isOwner = tipo === 'Publisher' && pet.publisher.id === userId
-    const isAdmin = tipo === 'Admin'
+    const { id: userId, type } = req.user!
+    const isOwner = type === 'Publisher' && pet.publisher.id === userId
+    const isAdmin = type === 'Admin'
     if (!isOwner && !isAdmin) {
       throw new ForbiddenError('No tenés permiso para editar esta mascota')
     }
@@ -47,9 +46,9 @@ export class PetController {
     const id = Number(req.params.id)
     const pet = await this.service.findOne(id)
 
-    const { id: userId, tipo } = req.usuario!
-    const isOwner = tipo === 'Publisher' && pet.publisher.id === userId
-    const isAdmin = tipo === 'Admin'
+    const { id: userId, type } = req.user!
+    const isOwner = type === 'Publisher' && pet.publisher.id === userId
+    const isAdmin = type === 'Admin'
     if (!isOwner && !isAdmin) {
       throw new ForbiddenError('No tenés permiso para eliminar esta mascota')
     }

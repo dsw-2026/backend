@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { verificarToken } from '../shared/middlewares/auth.middleware.js'
-import { verificarTipo } from '../shared/middlewares/role.middleware.js'
+import { authenticate } from '../shared/middlewares/auth.middleware.js'
+import { authorize } from '../shared/middlewares/role.middleware.js'
 import { validate } from '../shared/middlewares/validate.middleware.js'
 import { createLocalitySchema, updateLocalitySchema, idParamSchema } from './schemas/locality.schema.js'
 import { localityController } from './locality.controller.js'
@@ -58,7 +58,7 @@ localityRouter.get('/:id', validate(idParamSchema), localityController.findOne)
  *       201: { description: Localidad creada }
  *       403: { description: Sin permisos }
  */
-localityRouter.post('/', verificarToken, verificarTipo('Admin'), validate(createLocalitySchema), localityController.create)
+localityRouter.post('/', authenticate, authorize('Admin'), validate(createLocalitySchema), localityController.create)
 
 /**
  * @swagger
@@ -70,8 +70,8 @@ localityRouter.post('/', verificarToken, verificarTipo('Admin'), validate(create
  *     responses:
  *       200: { description: Localidad actualizada }
  */
-localityRouter.put('/:id', verificarToken, verificarTipo('Admin'), validate(updateLocalitySchema), localityController.update)
-localityRouter.patch('/:id', verificarToken, verificarTipo('Admin'), validate(updateLocalitySchema), localityController.update)
+localityRouter.put('/:id', authenticate, authorize('Admin'), validate(updateLocalitySchema), localityController.update)
+localityRouter.patch('/:id', authenticate, authorize('Admin'), validate(updateLocalitySchema), localityController.update)
 
 /**
  * @swagger
@@ -83,4 +83,4 @@ localityRouter.patch('/:id', verificarToken, verificarTipo('Admin'), validate(up
  *     responses:
  *       200: { description: Localidad eliminada }
  */
-localityRouter.delete('/:id', verificarToken, verificarTipo('Admin'), validate(idParamSchema), localityController.remove)
+localityRouter.delete('/:id', authenticate, authorize('Admin'), validate(idParamSchema), localityController.remove)

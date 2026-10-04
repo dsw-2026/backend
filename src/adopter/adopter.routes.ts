@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { verificarToken } from '../shared/middlewares/auth.middleware.js'
+import { authenticate } from '../shared/middlewares/auth.middleware.js'
 import { validate } from '../shared/middlewares/validate.middleware.js'
 import { createAdopterSchema, updateAdopterSchema, idParamSchema } from './schemas/adopter.schema.js'
 import { adopterController } from './adopter.controller.js'
@@ -34,7 +34,7 @@ adopterRouter.post('/', validate(createAdopterSchema), adopterController.create)
  *     responses:
  *       200: { description: Lista de adoptantes }
  */
-adopterRouter.get('/', verificarToken, adopterController.findAll)
+adopterRouter.get('/', authenticate, adopterController.findAll)
 
 /**
  * @swagger
@@ -47,7 +47,7 @@ adopterRouter.get('/', verificarToken, adopterController.findAll)
  *       200: { description: Adoptante encontrado }
  *       404: { description: No encontrado }
  */
-adopterRouter.get('/:id', verificarToken, validate(idParamSchema), adopterController.findOne)
+adopterRouter.get('/:id', authenticate, validate(idParamSchema), adopterController.findOne)
 
 /**
  * @swagger
@@ -59,8 +59,8 @@ adopterRouter.get('/:id', verificarToken, validate(idParamSchema), adopterContro
  *     responses:
  *       200: { description: Adoptante actualizado }
  */
-adopterRouter.put('/:id', verificarToken, validate(updateAdopterSchema), adopterController.update)
-adopterRouter.patch('/:id', verificarToken, validate(updateAdopterSchema), adopterController.update)
+adopterRouter.put('/:id', authenticate, validate(updateAdopterSchema), adopterController.update)
+adopterRouter.patch('/:id', authenticate, validate(updateAdopterSchema), adopterController.update)
 
 /**
  * @swagger
@@ -72,4 +72,4 @@ adopterRouter.patch('/:id', verificarToken, validate(updateAdopterSchema), adopt
  *     responses:
  *       200: { description: Adoptante eliminado }
  */
-adopterRouter.delete('/:id', verificarToken, validate(idParamSchema), adopterController.remove)
+adopterRouter.delete('/:id', authenticate, validate(idParamSchema), adopterController.remove)
