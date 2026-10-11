@@ -7,12 +7,13 @@ export class PetController {
   private service = new PetService()
 
   findAll = async (req: Request, res: Response) => {
-    const pets = await this.service.findAll({
-      status: req.query.status as string | undefined,
-      species: req.query.species ? Number(req.query.species) : undefined,
-    })
-    return res.status(200).json(new ApiResponse('Mascotas encontradas', pets))
-  }
+  const { id, type } = req.user!
+  const pets = await this.service.findAll(id, type, {
+    status: req.query.status as string | undefined,
+    species: req.query.species ? Number(req.query.species) : undefined,
+  })
+  return res.status(200).json(new ApiResponse('Mascotas encontradas', pets))
+}
 
   findOne = async (req: Request, res: Response) => {
     const id = Number(req.params.id)

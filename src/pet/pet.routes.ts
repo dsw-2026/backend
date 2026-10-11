@@ -18,15 +18,15 @@ export const petRouter = Router()
  * @swagger
  * /pets:
  *   get:
- *     summary: Lista las mascotas (filtrable por estado y especie)
+ *     summary: Lista las mascotas según el rol (filtrable por estado y especie)
  *     tags: [Pets]
  *     parameters:
- *       - { in: query, name: status, schema: { type: string }, description: "Filtra por estado (AVAILABLE, ADOPTED, etc.)" }
- *       - { in: query, name: species, schema: { type: integer }, description: "Filtra por id de especie" }
+ *       - { in: query, name: status, schema: { type: string }, description: "Filtra por estado (AVAILABLE, IN_PROCESS, ADOPTED, UNAVAILABLE)" }
+ *       - { in: query, name: species, schema: { type: integer }, description: "Filtra por especie" }
  *     responses:
  *       200: { description: Lista de mascotas }
  */
-petRouter.get('/', petController.findAll)
+petRouter.get('/', authenticate, authorize('Adopter', 'Publisher', 'Admin'), petController.findAll)
 
 /**
  * @swagger
