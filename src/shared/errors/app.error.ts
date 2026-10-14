@@ -9,9 +9,10 @@ export class AppError extends Error {
   }
 }
 
-export class NotFoundError extends AppError {}      // 404: recurso no encontrado
-export class ValidationError extends AppError {}    // 400: datos inválidos
-export class ConflictError extends AppError {}      // 409: conflicto (ej: duplicado, estado inválido)
-export class UnauthorizedError extends AppError {}  // 401: no autenticado
-export class ForbiddenError extends AppError {}     // 403: sin permisos
-export class DatabaseError extends AppError {}      // 500: error de base de datos
+//Error Subclasses
+export class NotFoundError extends AppError {}      // 404: Resource not found
+export class ValidationError extends AppError {}    // 400: Invalid payload or parameters
+export class ConflictError extends AppError {}      // 409: Conflict (e.g., duplicate entry, invalid state transition
+export class UnauthorizedError extends AppError {}  // 401: Authentication required or invalid token
+export class ForbiddenError extends AppError {}     // 403: Insufficient permissions
+export class DatabaseError extends AppError {}      // 500: Internal database or persistence error

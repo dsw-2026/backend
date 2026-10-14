@@ -28,17 +28,15 @@ import { swaggerSpec } from './shared/swagger.js'
 z.config(z.locales.es())
 
 export const app = express()
-
+// Globals Middlewares (CORS, express.json(), cookieParser())
 // CORS: allow the frontend (different origin/port) to consume this API
 app.use(cors({
   origin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
   credentials: true,
 }))
-
-// Body parser
+// Body parser --> req.body
 app.use(express.json())
-
-// Cookie parser: needed to read the httpOnly auth token cookie
+// Cookie parser -->req.cookies
 app.use(cookieParser())
 
 // Static files: serves the uploads/ folder (pet and profile photos)
@@ -49,7 +47,7 @@ app.use((req, res, next) => {
   RequestContext.create(orm.em, () => next())
 })
 
-// Routes
+// Routes: The second parameter is the router instance
 app.use('/api/species', speciesRouter)
 app.use('/api/provinces', provinceRouter)
 app.use('/api/characteristics', characteristicRouter)
@@ -61,7 +59,7 @@ app.use('/api/admins', adminRouter)
 app.use('/api/pets', petRouter)
 app.use('/api/applications', applicationRouter)
 app.use('/api/uploads', uploadRouter)
-app.use('/api/auth', authRouter)
+app.use('/api/auth', authRouter )
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 // Catch-all: unmatched routes return 404 as JSON

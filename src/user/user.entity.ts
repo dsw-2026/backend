@@ -3,9 +3,9 @@ import { Rel } from '@mikro-orm/core'
 import { BaseEntity } from '../shared/db/base.entity.js'
 import { Locality } from '../locality/locality.entity.js'
 
-// Clase base abstracta de la jerarquía de usuarios (Single Table
-// Inheritance). Publisher, Adopter y Admin heredan de ella. La columna
-// discriminadora 'userType' distingue el tipo de cada fila.
+// Abstract base class of the user hierarchy (Single Table
+// Inheritance). Publisher, Adopter, and Admin inherit from it. The
+// discriminator column 'userType' distinguishes the type of each row.
 @Entity({ discriminatorColumn: 'userType', abstract: true })
 export class User extends BaseEntity {
   @Property({ nullable: false, unique: true })
@@ -17,7 +17,7 @@ export class User extends BaseEntity {
   @Property({ nullable: false })
   lastName!: string
 
-  // hidden: true → nunca se incluye en las respuestas JSON (seguridad).
+// hidden: true → never included in JSON responses (security).
   @Property({ nullable: false, hidden: true })
   password!: string
 

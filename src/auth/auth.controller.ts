@@ -23,7 +23,7 @@ async function login(req: Request, res: Response) {
   }
 
   const token = generateToken({ id: user.id, type: user.constructor.name })
-
+  
   res.cookie('auth.token', token, { httpOnly: true })
   res.status(200).json(new ApiResponse('Login exitoso', { id: user.id, username: user.username }))
 }
