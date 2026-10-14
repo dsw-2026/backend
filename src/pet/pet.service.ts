@@ -18,12 +18,19 @@ function splitPetData(dto: any) {
 }
 
 export class PetService {
-  async findAll(filter: { status?: string; species?: number }) {
-    const query: any = {}
-    if (filter.status) query.status = filter.status
-    if (filter.species) query.species = filter.species
-    return await petDao.findAll(query)
+  async findAll(userId: number, userType: string, filter: { status?: string; species?: number } = {}) {
+  const query: any = {}
+  if (filter.status) query.status = filter.status
+  if (filter.species) query.species = filter.species
+
+  if (userType === 'Publisher') {
+    query.publisher = userId
+  } else if (userType === 'Adopter' || userType === 'Admin') {
+    // ven todas
   }
+
+  return await petDao.findAll(query)
+}
 
   async findOne(id: number) {
     const pet = await petDao.findOne(id)
