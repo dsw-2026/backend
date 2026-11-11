@@ -1,4 +1,11 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+// The service's import chain reaches config/orm.js, which opens a real DB
+// connection on load. These are unit tests with mocks, so we replace that
+// module with a stub: this way the tests never touch the database and run
+// without an .env.
+vi.mock('../../config/orm.js', () => ({ orm: {} }))
+
 import { ApplicationService } from '../application.service.js'
 import { ApplicationStatus } from '../application.enums.js'
 import { PetStatus } from '../../pet/pet.enums.js'

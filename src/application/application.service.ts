@@ -3,6 +3,8 @@ import { PetService } from '../pet/pet.service.js'
 import { NotFoundError, ConflictError, ForbiddenError } from '../shared/errors/app.error.js'
 import { ApplicationStatus } from './application.enums.js'
 import { PetStatus } from '../pet/pet.enums.js'
+import { sendEmail } from '../shared/email/email.service.js'
+import { applicationCreatedAdopterEmail, applicationCreatedPublisherEmail } from '../shared/email/email.templates.js'
 import type { CreateApplicationDto } from './schemas/application.schema.js'
 
 // Minimal dependency types, so mocks can be injected in tests.
@@ -69,7 +71,7 @@ export class ApplicationService {
       throw new ConflictError('Ya tenés una solicitud registrada para esta mascota')
     }
 
-    return await this.applicationDao.create({
+    const application = await this.applicationDao.create({
       message: dto.message,
       pet: dto.pet,
       adopter: adopterId,
@@ -81,6 +83,32 @@ export class ApplicationService {
       desiredToleratesOtherAnimals: dto.desiredToleratesOtherAnimals,
       desiredToleratesConfinement: dto.desiredToleratesConfinement,
     })
+
+    // Voluntary scope: notify the adopter and the publisher by email.
+    // Fire-and-forget: a failed email must not block creating the application.
+    this.notifyApplicationCreated(application)
+
+    return application
+  }
+
+  // Sends the two confirmation emails for a new application (adopter + publisher).
+  // Never throws (sendEmail swallows its own errors).
+  private notifyApplicationCreated(application: any) {
+    const adopter = application.adopter
+    const pet = application.pet
+    const publisher = pet?.publisher
+    if (!adopter?.email || !pet) return
+
+    const adopterName = `${adopter.firstName ?? ''} ${adopter.lastName ?? ''}`.trim()
+
+    const toAdopter = applicationCreatedAdopterEmail(adopterName, pet.name)
+    sendEmail({ to: adopter.email, ...toAdopter })
+
+    if (publisher?.email) {
+      const publisherName = `${publisher.firstName ?? ''} ${publisher.lastName ?? ''}`.trim()
+      const toPublisher = applicationCreatedPublisherEmail(publisherName, pet.name, adopterName)
+      sendEmail({ to: publisher.email, ...toPublisher })
+    }
   }
 
   // EPIC B: approve. Marks the pet as adopted and rejects the other applications.
