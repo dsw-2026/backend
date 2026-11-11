@@ -22,7 +22,6 @@ export class PetController {
   }
 
   create = async (req: Request, res: Response) => {
-    // El publicador dueño de la mascota es el usuario logueado (del token).
     const publisherId = req.user!.id
     const pet = await this.service.create(req.body, publisherId)
     return res.status(201).json(new ApiResponse('Mascota creada', pet))

@@ -18,7 +18,6 @@ export class ApplicationController {
   }
 
   create = async (req: Request, res: Response) => {
-    // El adoptante es el usuario logueado (del token).
     const adopterId = req.user!.id
     const application = await this.service.create(req.body, adopterId)
     return res.status(201).json(new ApiResponse('Solicitud creada', application))

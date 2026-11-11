@@ -19,18 +19,17 @@ function splitPetData(dto: any) {
 
 export class PetService {
   async findAll(userId: number, userType: string, filter: { status?: string; species?: number } = {}) {
-  const query: any = {}
-  if (filter.status) query.status = filter.status
-  if (filter.species) query.species = filter.species
+    const query: any = {}
+    if (filter.status) query.status = filter.status
+    if (filter.species) query.species = filter.species
 
-  if (userType === 'Publisher') {
-    query.publisher = userId
-  } else if (userType === 'Adopter' || userType === 'Admin') {
-    // ven todas
+    // A Publisher only sees their own pets; Adopter and Admin see all.
+    if (userType === 'Publisher') {
+      query.publisher = userId
+    }
+
+    return await petDao.findAll(query)
   }
-
-  return await petDao.findAll(query)
-}
 
   async findOne(id: number) {
     const pet = await petDao.findOne(id)
