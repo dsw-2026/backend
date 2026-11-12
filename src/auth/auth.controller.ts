@@ -24,7 +24,13 @@ async function login(req: Request, res: Response) {
 
   const token = generateToken({ id: user.id, type: user.constructor.name })
   
-  res.cookie('auth.token', token, { httpOnly: true })
+  const isProd = process.env.NODE_ENV === 'production'
+
+  res.cookie('auth.token', token, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+  })
   res.status(200).json(new ApiResponse('Login exitoso', { id: user.id, username: user.username }))
 }
 

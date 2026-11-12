@@ -28,6 +28,7 @@ import { swaggerSpec } from './shared/swagger.js'
 z.config(z.locales.es())
 
 export const app = express()
+app.set('trust proxy', 1)
 // Globals Middlewares (CORS, express.json(), cookieParser())
 // CORS: allow the frontend (different origin/port) to consume this API
 app.use(cors({
@@ -73,6 +74,8 @@ app.use(errorHandler)
 // Schema sync (development only, see orm.ts)
 await syncSchema()
 
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000')
+const PORT = process.env.PORT || 3000
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
 })
