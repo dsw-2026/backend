@@ -26,7 +26,7 @@ export const petRouter = Router()
  *     responses:
  *       200: { description: Lista de mascotas }
  */
-petRouter.get('/', authenticate, authorize('Adopter', 'Publisher', 'Admin'), validate(idParamSchema), petController.findAll)
+petRouter.get('/', authenticate, authorize('Adopter', 'Publisher', 'Admin'), petController.findAll)
 
 /**
  * @swagger
