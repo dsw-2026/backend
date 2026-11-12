@@ -1,6 +1,9 @@
 import { Router } from 'express'
 import { login, getProfile } from './auth.controller.js'
 import { authenticate } from '../shared/middlewares/auth.middleware.js'
+import { validate } from '../shared/middlewares/validate.middleware.js'
+import { loginSchema } from './schemas/auth.schema.js'
+
 
 export const authRouter = Router()
 
@@ -21,7 +24,7 @@ export const authRouter = Router()
  *       200: { description: Login exitoso }
  *       401: { description: Credenciales incorrectas }
  */
-authRouter.post('/login', login)
+authRouter.post('/login', validate(loginSchema), login)
 
 /**
  * @swagger
