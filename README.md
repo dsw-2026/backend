@@ -34,17 +34,21 @@ responsable.
 
 ## 🛠 Tecnologías
 
-| Categoría          | Herramienta                     |
-| ------------------ | ------------------------------- |
-| Runtime            | Node.js 20+                     |
-| Lenguaje           | TypeScript                      |
-| Framework web      | Express                         |
-| ORM                | MikroORM                        |
-| Base de datos      | MySQL                           |
-| Validación         | Zod                             |
-| Autenticación      | JWT + bcrypt (cookies httpOnly) |
-| Documentación      | Swagger (OpenAPI 3.0)           |
-| Gestor de paquetes | pnpm                            |
+| Categoría                      | Herramienta                     |
+| ------------------------------ | ------------------------------- |
+| Runtime                        | Node.js 20+                     |
+| Lenguaje                       | TypeScript                      |
+| Framework web                  | Express                         |
+| ORM                            | MikroORM                        |
+| Base de datos                  | MySQL                           |
+| Validación                     | Zod                             |
+| Autenticación                  | JWT + bcrypt (cookies httpOnly) |
+| Almacenamiento de imágenes     | Cloudinary (subida con Multer)  |
+| Documentación                  | Swagger (OpenAPI 3.0)           |
+| Tests                          | Vitest                          |
+| Gestor de paquetes             | pnpm                            |
+| Linter                         | ESLint                          |
+| Hosting                        | 	Railway (back y MySQL)         |
 
 ---
 
@@ -182,7 +186,7 @@ se mantienen en inglés (son códigos internos que el frontend traduce).
 - **pnpm** — si no lo tenés: `npm install -g pnpm`
 - Acceso a una base de datos **MySQL** (el proyecto usa una instancia en la
   nube; se necesitan las credenciales de conexión).
-
+- Cuenta de Cloudinary (plan gratuito) para la subida de imágenes: https://cloudinary.com
 ---
 
 ## ⚙️ Instalación
@@ -214,6 +218,11 @@ JWT_SECRET=
 
 # Origen del frontend habilitado para consultar la API
 CORS_ORIGIN=http://localhost:5173
+
+# Cloudinary (datos del Dashboard de tu cuenta)
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 
 # Credenciales de la primera cuenta Admin (usadas por "pnpm seed:admin")
 ADMIN_USERNAME=
@@ -275,6 +284,14 @@ pnpm seed:run
 Todas las cuentas de prueba usan la contraseña `password123`.
 
 ---
+🧪 Tests
+
+```bash
+pnpm test
+```
+Ejecuta los tests automatizados con Vitest. Los tests unitarios cubren la lógica de negocio sin necesidad de levantar el servidor.
+
+---
 
 ## 📖 Documentación de la API (Swagger)
 
@@ -295,6 +312,7 @@ respuestas, y probarlos directamente desde el navegador.
 | ----------------- | ----------------------------------------------------------------- |
 | `pnpm start:dev`  | Levanta el servidor en desarrollo (con recompilación automática). |
 | `pnpm build`      | Compila TypeScript a JavaScript (carpeta `dist/`).                |
+| `pnpm start`      | Ejecuta el servidor compilado (producción).                       |
 | `pnpm test`       | Ejecuta los tests automatizados.                                  |
 | `pnpm seed:admin` | Crea la cuenta Admin inicial (desde el `.env`).                   |
 | `pnpm seed:run`   | Carga los datos de prueba (solo desarrollo).                      |
@@ -312,7 +330,44 @@ respuestas, y probarlos directamente desde el navegador.
   publicar mascotas; solo un Adopter puede crear solicitudes.
 
 ---
+## 🚀 Deploy en Railway
 
+El backend y la base de datos MySQL están desplegados en [Railway](https://railway.app), en el mismo proyecto.
+
+### Cómo está configurado
+
+- El servicio del backend se conecta al repositorio de GitHub y **despliega automáticamente** cada push a `main`.
+- Railway ejecuta `pnpm build` y luego `pnpm start`.
+- El backend se conecta a MySQL por la **red privada** de Railway (`mysql.railway.internal`), sin exponer la base a internet.
+
+### Variables de entorno del servicio
+
+| Variable                | Valor                                          |
+| ----------------------- | ---------------------------------------------- |
+| `DB_HOST`               | `${{MySQL.MYSQLHOST}}`                         |
+| `DB_PORT`               | `${{MySQL.MYSQLPORT}}`                         |
+| `DB_USER`               | `${{MySQL.MYSQLUSER}}`                         |
+| `DB_PASSWORD`           | `${{MySQL.MYSQLPASSWORD}}`                     |
+| `DB_NAME`               | `${{MySQL.MYSQLDATABASE}}`                     |
+| `JWT_SECRET`            | Cadena larga y aleatoria.                      |
+| `CORS_ORIGIN`           | URL del frontend deployado (sin `/` final).    |
+| `NODE_ENV`              | `production`                                   |
+| `CLOUDINARY_CLOUD_NAME` | Desde el Dashboard de Cloudinary.              |
+| `CLOUDINARY_API_KEY`    | Desde el Dashboard de Cloudinary.              |
+| `CLOUDINARY_API_SECRET` | Desde el Dashboard de Cloudinary.              |
+
+### Carga inicial de datos en la base deployada
+
+La base de Railway arranca vacía. Para cargar el esquema y los datos iniciales:
+
+1. Se habilitó temporalmente el **Public Access** del servicio MySQL.
+2. Se apuntó el `.env` local a esa base.
+3. Se ejecutaron `pnpm seed:admin` y `pnpm seed:run`.
+4. Una vez cargados los datos, se **deshabilitó el acceso público**.
+
+---
+
+---
 ## 📂 Estructura del proyecto
 
 ```
