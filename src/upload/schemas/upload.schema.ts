@@ -8,9 +8,6 @@ export const uploadFileSchema = z.object({
     message: 'Formato no permitido. Solo JPG, PNG, WEBP o GIF.',
   }),
   size: z.number().max(5 * 1024 * 1024, 'La imagen supera el límite de 5 MB'),
-  destination: z.string(),
-  filename: z.string(),
-  path: z.string(),
 })
 
 export type UploadFileDto = z.infer<typeof uploadFileSchema>
